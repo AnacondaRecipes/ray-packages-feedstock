@@ -27,7 +27,8 @@ build:
   number: 1
   skip: true  # [py<36]
   # skip on MacOS as there's some weird compilation issue and I have no MacOS to develop on
-  skip: true  # [osx]
+  # skipping architectures that do not yet have bazel
+  skip: true  # [osx or ppc64le or s390x or aarch64]
 
 # Need these up here for conda-smithy to handle them properly.
 requirements:
@@ -37,11 +38,15 @@ requirements:
     - bazel <=3.7.2
     - cython >=0.29
     - curl
-    - make
+    - make           # [not win]
+    - m2-make        # [win]
     - m2-patch       # [win]
 
 outputs:
   - name: ray-all
+    build:
+      # Until all of the ray-* packages are available in defaults, skipping the ray-all metapackage.
+      skip: true
     requirements:
       host:
       run:
@@ -73,7 +78,8 @@ outputs:
         - bazel <3.7     # [win]
         - curl
         - cython >=0.29
-        - make
+        - make      # [not win]
+        - m2-make   # [win]
       host:
         - python
         - pip
@@ -192,6 +198,10 @@ outputs:
         - ray
 
   - name: ray-k8s
+    build:
+      # Holding off on ray-k8s. defaults does not contain the kubernetes package and there is a bit
+      # to bring in for this.
+      skip: true
     requirements:
       host:
         - python
@@ -206,6 +216,10 @@ outputs:
 
   - name: ray-rllib
     build:
+      # Holding off on ray-rllib until we update to newer version. The dependencies have been
+      # cleaned up quite a bit and no longer require gym-atari & atari_py:
+      # https://github.com/ray-project/ray/blob/55709bac7a6577b57a76cfcc6b295eda2468acad/python/setup.py#L103
+      skip: true
       entry_points:
         - rllib = ray.rllib.scripts:cli
     requirements:
@@ -232,6 +246,10 @@ outputs:
 
   - name: ray-serve
     build:
+      # Holding off on ray-serve as well for this release. uvicorn would bring in a number of
+      # dependencies not yet available in defaults: watchgod, websockets 8.*, httptools 0.1.*, and
+      # python-dotenv.
+      skip: true
       entry_points:
         - serve = ray.serve.scripts:cli
     requirements:
