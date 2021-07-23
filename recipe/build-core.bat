@@ -1,3 +1,7 @@
+@REM These let Bazel know which Visual Studio it should use.
+set "BAZEL_VC=%VSINSTALLDIR%VC"
+set "BAZEL_VS=%VSINSTALLDIR%"
+
 cd python
 set SKIP_THIRDPARTY_INSTALL=1
 "%PYTHON%" setup.py install
