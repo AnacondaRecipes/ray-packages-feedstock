@@ -1,4 +1,4 @@
-{% set version = "1.4.0" %}
+{% set version = "1.6.0" %}
 
 package:
   name: ray-packages
@@ -6,7 +6,7 @@ package:
 
 source:
   url: https://github.com/ray-project/ray/archive/ray-{{ version }}.tar.gz
-  sha256: 1ad04845dad6824220ad7750d666e7186f6b9186fb99294aae7d0e35f8e75018
+  sha256: b96a8d864b91dc1c2cfdc3d27602a3c9afaedbc7765330d6cba10c1f0ab56628
   patches:
     - patches/0001-Do-not-force-pickle5-in-sys.path.patch
     - patches/0002-Fix-redis-build-for-non-default-compiler-drivers.patch
@@ -17,14 +17,14 @@ source:
     - patches/0007-Convert-symlinks-to-junctions-on-Windows-before-buil.patch
     - patches/0008-Add-workaround-for-os.path.isdir-on-Windows.patch
     - patches/0009-Include-process.h-for-getpid-explicitly-on-Windows.patch
-    - patches/0010-Empty-install-requirements-installed-by-conda-build.patch
-    - patches/0011-permit-python-3.9.patch
-    - patches/0012-Ignore-warnings-in-event.cc-and-logging.cc.patch
-    - patches/0013-Disable-runfiles-on-windows.patch
+    - patches/0010-Remove-all-dependencies-from-setup.py.patch
+    - patches/0011-Ignore-warnings-in-event.cc-and-logging.cc.patch
+    - patches/0012-Disable-runfiles-on-windows.patch
+    - patches/0013-Add-bazel-linkopts-libs.patch
 
 
 build:
-  number: 1
+  number: 0
   skip: true  # [py<36]
   # skip on MacOS as there's some weird compilation issue and I have no MacOS to develop on
   # skipping architectures that do not yet have bazel
@@ -53,7 +53,7 @@ outputs:
       host:
       run:
         - python
-        - {{ pin_subpackage('ray-core', exact=True) }}
+        - {{ pin_subpackage('ray-default', exact=True) }}
         # autoscaler is completely disabled for now as it's missing a bunch of dependencies
         # and there's not much interest in adding them (yet).
         # autoscaler does not work on Windows, no point of building it; see below
@@ -70,7 +70,7 @@ outputs:
         - ray
 
   - name: ray-core
-    script: build-core.sh   # [not win]
+    script: build-core.sh  # [not win]
     script: build-core.bat  # [win]
     requirements:
       build:
@@ -78,6 +78,7 @@ outputs:
         - {{ compiler('cxx') }}
         - bazel <=3.4.1  # [not win]
         - bazel <3.7     # [win]
+        - sysroot_linux-64 2.17  # [linux64]
         - curl
         - cython >=0.29
         - make      # [not win]
@@ -91,31 +92,21 @@ outputs:
         - pickle5  # [py<38]
       run:
         - python
-        - aiohttp
-        - aiohttp-cors
-        - aioredis
+        - attrs
         - click >=7.0
         - colorama
-        - colorful
         - dataclasses  # [py<37]
         - filelock
-        # gpustat-0.6.0 has a dependency which does not exist on Windows;
-        # skip it there until gpustat is fixed as it is optional
-        - gpustat  # [not win]
         - grpcio >=1.28.1
-        - jsonschema
         - msgpack-python >=1.0.0, <2.0.0
         - numpy >=1.16
-        - opencensus
         - pickle5  # [py<38]
-        - prometheus_client >=0.7.1
         - protobuf >=3.15.3
         - psutil
-        - pydantic >=1.8
         - pyyaml
-        - requests
         - redis-py >=3.5.0
         - setproctitle =1.1.10
+
     test:
       imports:
         - ray
@@ -125,12 +116,37 @@ outputs:
         - ray.runtime_context
         - ray.state
         - ray.worker
+      commands:
+        - python -c "import ray; ray.init()"
+
+  - name: ray-default
+    requirements:
+      host:
+        - python
+      run:
+        - python
+        - {{ pin_subpackage('ray-core', exact=True) }}
+        - aiohttp
+        - aiohttp-cors
+        - aioredis <2
+        - colorful
+        # gpustat-0.6.0 has a dependency which does not exist on Windows;
+        # skip it there until gpustat is fixed as it is optional
+        - gpustat  # [not win]
+        - jsonschema
+        - requests
+        - opencensus
+        - prometheus_client >=0.7.1
+        - py-spy >=0.2.0
+
+    test:
+      imports:
+        # ray-default is a convenience wrapper with no imports of its own
+        - ray
         # init-code seemingly depends on platform or other ambient things;
         # the following doesn't get triggered in CI, but was a problem in
         # https://github.com/conda-forge/ray-packages-feedstock/issues/16
         - ray._private.metrics_agent
-      commands:
-        - python -c "import ray; ray.init()"
 
   - name: ray-autoscaler
     build:
@@ -175,7 +191,7 @@ outputs:
         - python
       run:
         - python
-        - {{ pin_subpackage('ray-core', exact=True) }}
+        - {{ pin_subpackage('ray-default', exact=True) }}
     test:
       imports:
         - ray.new_dashboard
@@ -211,6 +227,7 @@ outputs:
         - python
         - {{ pin_subpackage('ray-core', exact=True) }}
         - kubernetes
+        - urllib3
     test:
       imports:
         # there doesn't appear to be a k8s module, not sure how to test this
@@ -230,16 +247,17 @@ outputs:
       run:
         - python
         - {{ pin_subpackage('ray-tune', exact=True) }}
-        - atari_py
         - dm-tree
         - gym
         - lz4
-        # until there is a build of opencv-python-headless which does not require
-        # full graphics stack we have to rely on user system having needed
-        #  graphics libraries installed
-        - opencv <=4.30.0
+        - matplotlib !=3.4.3
+        # scikit-image uses a deprecated import for pooch, causing rllib to fail on import
+        # pinning pooch to <1.5 solves this issue for now
+        - pooch <1.5
         - pyyaml
+        - scikit-image
         - scipy
+
     test:
       imports:
         - ray.rllib
@@ -279,8 +297,9 @@ outputs:
         - python
         - {{ pin_subpackage('ray-core', exact=True) }}
         - pandas
+        - requests
         - tabulate
-        - tensorboardX
+        - tensorboardX >=1.9
     test:
       imports:
         - ray.tune
@@ -325,3 +344,4 @@ extra:
     - dHannasch
     - h-vetinari
     - vnlitvinov
+    - krfricke
