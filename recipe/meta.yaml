@@ -27,8 +27,8 @@ build:
   number: 0
   skip: true  # [py<36]
   # skip on MacOS as there's some weird compilation issue and I have no MacOS to develop on
-  # skipping architectures that do not yet have bazel
-  skip: true  # [osx or ppc64le or s390x or aarch64]
+  # skipping architectures that do not yet have bazel, so only build for linux64 & win64
+  skip: true  # [not ((linux or win) and x86_64)]
 
 # Need these up here for conda-smithy to handle them properly.
 requirements:
