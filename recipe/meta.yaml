@@ -1,4 +1,4 @@
-{% set version = "1.6.0" %}
+{% set version = "1.9.2" %}
 
 package:
   name: ray-packages
@@ -6,27 +6,19 @@ package:
 
 source:
   url: https://github.com/ray-project/ray/archive/ray-{{ version }}.tar.gz
-  sha256: b96a8d864b91dc1c2cfdc3d27602a3c9afaedbc7765330d6cba10c1f0ab56628
+  sha256: 33bd1afcfe2f8d0f416e80bf21e4b36fe6f9ec74c55b034a5581553270fdf8e8
   patches:
     - patches/0001-Do-not-force-pickle5-in-sys.path.patch
-    - patches/0002-Fix-redis-build-for-non-default-compiler-drivers.patch
     - patches/0003-Redis-deps-now-build-but-do-not-link.patch
     - patches/0004-Disable-making-non-core-entry-scripts.patch
-    - patches/0005-Contain-bazel-root-and-output-dir-right-above-SRC_DI.patch
-    - patches/0006-Do-not-crash-if-BAZEL_SH-not-set-on-Windows.patch
-    - patches/0007-Convert-symlinks-to-junctions-on-Windows-before-buil.patch
-    - patches/0008-Add-workaround-for-os.path.isdir-on-Windows.patch
-    - patches/0009-Include-process.h-for-getpid-explicitly-on-Windows.patch
     - patches/0010-Remove-all-dependencies-from-setup.py.patch
     - patches/0011-Ignore-warnings-in-event.cc-and-logging.cc.patch
-    - patches/0012-Disable-runfiles-on-windows.patch
     - patches/0013-Add-bazel-linkopts-libs.patch
-
+    - patches/0014-Fix-replace_symlinks_with_junctions.patch
 
 build:
   number: 0
-  skip: true  # [py<36]
-  # skip on MacOS as there's some weird compilation issue and I have no MacOS to develop on
+  skip: true  # [py<36 or py>39]
   # skipping architectures that do not yet have bazel, so only build for linux64 & win64
   skip: true  # [not ((linux or win) and x86_64)]
 
@@ -36,7 +28,7 @@ requirements:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - git
-    - bazel <=3.7.2
+    - bazel >=4.2.1
     - cython >=0.29
     - curl
     - make           # [not win]
@@ -76,14 +68,13 @@ outputs:
       build:
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
-        - bazel <=3.4.1  # [not win]
-        - bazel <3.7     # [win]
+        - bazel >=4.2.1
         - sysroot_linux-64 2.17  # [linux64]
         - curl
         - cython >=0.29
         - make      # [not win]
         - m2-make   # [win]
-        - python <3.10
+        - python  
       host:
         - python
         - pip
@@ -127,7 +118,7 @@ outputs:
       run:
         - python
         - {{ pin_subpackage('ray-core', exact=True) }}
-        - aiohttp 3.7
+        - aiohttp >=3.7
         - aiohttp-cors
         - aioredis <2
         - colorful
