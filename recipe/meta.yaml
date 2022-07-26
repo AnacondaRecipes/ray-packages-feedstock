@@ -18,7 +18,8 @@ source:
 
 build:
   number: 0
-  skip: true  # [py<36 or py>39]
+  skip: true  # [py<36]
+  skip: true  # [py>39]
   # skipping architectures that do not yet have bazel, so only build for linux64 & win64
   skip: true  # [osx or (not x86_64)]
 
