@@ -1,8 +1,13 @@
-cuda_compiler_version:                     
-  - None
-docker_image:
-  - quay.io/condaforge/linux-anvil-cos7-x86_64
-cudnn:
-  - undefined
-cdt_name:
-  - cos7
+cuda_compiler_version:                            # [linux and x86_64]
+  - None                                          # [linux and x86_64]
+docker_image:                                     # [linux and x86_64]
+  - quay.io/condaforge/linux-anvil-cos7-x86_64    # [linux and x86_64]
+cudnn:                                            # [linux and x86_64]
+  - undefined                                     # [linux and x86_64]
+cdt_name:                                         # [linux and x86_64]
+  - cos7                                          # [linux and x86_64]
+
+c_compiler:                                       # [win]
+- vs2019                                          # [win]
+cxx_compiler:                                     # [win]
+- vs2019                                          # [win]
