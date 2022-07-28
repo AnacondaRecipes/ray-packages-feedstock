@@ -93,13 +93,14 @@ outputs:
         - filelock
         - grpcio >=1.28.1
         - msgpack-python >=1.0.0, <2.0.0
-        - numpy >=1.16
+        - numpy >=1.16 # [py<39]
+        - numpy >=1.19.3 # [py>=39]
         - pickle5  # [py<38]
         - protobuf >=3.15.3
         - psutil
         - pyyaml
         - redis-py >=3.5.0
-        - setproctitle =1.1.10
+        - setproctitle =1.2.2
 
     test:
       imports:
@@ -120,9 +121,11 @@ outputs:
         - python
         - {{ pin_subpackage('ray-core', exact=True) }}
         - aiohttp >=3.7
+        - aiosignal
         - aiohttp-cors
         - aioredis <2
         - colorful
+        - frozenlist
         # gpustat-0.6.0 has a dependency which does not exist on Windows;
         # skip it there until gpustat is fixed as it is optional
         - gpustat  # [not win]
@@ -131,6 +134,7 @@ outputs:
         - opencensus
         - prometheus_client >=0.7.1
         - py-spy >=0.2.0
+        - smart_open
 
     test:
       imports:
@@ -170,7 +174,6 @@ outputs:
 
   - name: ray-dashboard
     build:
-      # Skipping this because for now.
       skip: true
       script:
         - cd python/ray/dashboard/client
@@ -301,7 +304,7 @@ outputs:
         - ray.tune
 
 about:
-  home: https://github.com/ray-project/ray
+  home: https://www.ray.io/
   license: Apache-2.0
   license_family: Apache
   license_file:
@@ -332,7 +335,7 @@ about:
   description: |
     Ray is a fast and simple framework for building and running
     distributed applications.
-  doc_url: https://ray.readthedocs.io/
+  doc_url: https://docs.ray.io/en/latest/
   dev_url: https://github.com/ray-project/ray
 
 extra:
