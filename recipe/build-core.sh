@@ -18,3 +18,6 @@ grep -lR ELF build/ | xargs chmod +w
 bazel "--output_user_root=$SRC_DIR/../bazel-root" "--output_base=$SRC_DIR/../b-o" clean
 bazel "--output_user_root=$SRC_DIR/../bazel-root" "--output_base=$SRC_DIR/../b-o" shutdown
 rm -rf "$SRC_DIR/../b-o" "$SRC_DIR/../bazel-root"
+# this is needed because on many build systems the cache is actually under /root.
+# but this may not always be true/allowed, hence the or operation.
+rm -rf /root/.cache/bazel || true

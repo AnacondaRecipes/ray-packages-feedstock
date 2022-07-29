@@ -1,4 +1,4 @@
-{% set version = "1.6.0" %}
+{% set version = "1.9.2" %}
 
 package:
   name: ray-packages
@@ -6,29 +6,23 @@ package:
 
 source:
   url: https://github.com/ray-project/ray/archive/ray-{{ version }}.tar.gz
-  sha256: b96a8d864b91dc1c2cfdc3d27602a3c9afaedbc7765330d6cba10c1f0ab56628
+  sha256: 33bd1afcfe2f8d0f416e80bf21e4b36fe6f9ec74c55b034a5581553270fdf8e8
   patches:
     - patches/0001-Do-not-force-pickle5-in-sys.path.patch
-    - patches/0002-Fix-redis-build-for-non-default-compiler-drivers.patch
     - patches/0003-Redis-deps-now-build-but-do-not-link.patch
     - patches/0004-Disable-making-non-core-entry-scripts.patch
-    - patches/0005-Contain-bazel-root-and-output-dir-right-above-SRC_DI.patch
-    - patches/0006-Do-not-crash-if-BAZEL_SH-not-set-on-Windows.patch
-    - patches/0007-Convert-symlinks-to-junctions-on-Windows-before-buil.patch
-    - patches/0008-Add-workaround-for-os.path.isdir-on-Windows.patch
-    - patches/0009-Include-process.h-for-getpid-explicitly-on-Windows.patch
     - patches/0010-Remove-all-dependencies-from-setup.py.patch
     - patches/0011-Ignore-warnings-in-event.cc-and-logging.cc.patch
-    - patches/0012-Disable-runfiles-on-windows.patch
     - patches/0013-Add-bazel-linkopts-libs.patch
-
+    - patches/0014-Fix-replace_symlinks_with_junctions.patch
 
 build:
   number: 0
   skip: true  # [py<36]
-  # skip on MacOS as there's some weird compilation issue and I have no MacOS to develop on
+  skip: true  # [py>39]
   # skipping architectures that do not yet have bazel, so only build for linux64 & win64
-  skip: true  # [not ((linux or win) and x86_64)]
+  skip: true  # [osx]
+  skip: true  # [not (x86_64 or win)]
 
 # Need these up here for conda-smithy to handle them properly.
 requirements:
@@ -36,7 +30,7 @@ requirements:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - git
-    - bazel <=3.7.2
+    - bazel >=4.2.1
     - cython >=0.29
     - curl
     - make           # [not win]
@@ -57,9 +51,9 @@ outputs:
         # autoscaler is completely disabled for now as it's missing a bunch of dependencies
         # and there's not much interest in adding them (yet).
         # autoscaler does not work on Windows, no point of building it; see below
-        #- {{ pin_subpackage('ray-autoscaler', exact=True) }}  # [not win]
+        # - {{ pin_subpackage('ray-autoscaler', exact=True) }}  # [not win]
         - {{ pin_subpackage('ray-dashboard', exact=True) }}
-        #- {{ pin_subpackage('ray-debug', exact=True) }}  # turned off for now, see below
+        # - {{ pin_subpackage('ray-debug', exact=True) }}  # turned off for now, see below
         - {{ pin_subpackage('ray-k8s', exact=True) }}
         - {{ pin_subpackage('ray-rllib', exact=True) }}
         - {{ pin_subpackage('ray-serve', exact=True) }}
@@ -76,14 +70,13 @@ outputs:
       build:
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
-        - bazel <=3.4.1  # [not win]
-        - bazel <3.7     # [win]
-        - sysroot_linux-64 2.17  # [linux64]
+        - bazel >=4.2.1
+        - sysroot_linux-64 2.17  # [linux and x86_64]
         - curl
         - cython >=0.29
         - make      # [not win]
         - m2-make   # [win]
-        - python <3.10
+        - python  
       host:
         - python
         - pip
@@ -100,20 +93,20 @@ outputs:
         - filelock
         - grpcio >=1.28.1
         - msgpack-python >=1.0.0, <2.0.0
-        - numpy >=1.16
+        - numpy >=1.16 # [py<39]
+        - numpy >=1.19.3 # [py>=39]
         - pickle5  # [py<38]
         - protobuf >=3.15.3
         - psutil
         - pyyaml
         - redis-py >=3.5.0
-        - setproctitle =1.1.10
+        - setproctitle =1.2.2
 
     test:
       imports:
         - ray
         - ray._raylet
         - ray.actor
-        - ray.profiling
         - ray.runtime_context
         - ray.state
         - ray.worker
@@ -127,10 +120,12 @@ outputs:
       run:
         - python
         - {{ pin_subpackage('ray-core', exact=True) }}
-        - aiohttp 3.7
+        - aiohttp >=3.7
+        - aiosignal
         - aiohttp-cors
         - aioredis <2
         - colorful
+        - frozenlist
         # gpustat-0.6.0 has a dependency which does not exist on Windows;
         # skip it there until gpustat is fixed as it is optional
         - gpustat  # [not win]
@@ -139,6 +134,7 @@ outputs:
         - opencensus
         - prometheus_client >=0.7.1
         - py-spy >=0.2.0
+        - smart_open
 
     test:
       imports:
@@ -178,14 +174,15 @@ outputs:
 
   - name: ray-dashboard
     build:
+      skip: true
       script:
-        - cd python/ray/new_dashboard/client
+        - cd python/ray/dashboard/client
         - npm install
         - npm ci
         - npm run build
         # not sure why this seems to get copied on windows but not linux...
-        - mkdir -p $SP_DIR/ray/new_dashboard/client             # [not win]
-        - cp -R ./build $SP_DIR/ray/new_dashboard/client/build  # [not win]
+        - mkdir -p $SP_DIR/ray/dashboard/client             # [not win]
+        - cp -R ./build $SP_DIR/ray/dashboard/client/build  # [not win]
     requirements:
       host:
         - nodejs
@@ -195,7 +192,7 @@ outputs:
         - {{ pin_subpackage('ray-default', exact=True) }}
     test:
       imports:
-        - ray.new_dashboard
+        - ray.dashboard
       commands:
         - python -c "import ray; ray.init(include_dashboard=True)"
 
@@ -289,6 +286,7 @@ outputs:
 
   - name: ray-tune
     build:
+      skip: true
       entry_points:
         - tune = ray.tune.scripts:cli
     requirements:
@@ -306,7 +304,7 @@ outputs:
         - ray.tune
 
 about:
-  home: https://github.com/ray-project/ray
+  home: https://www.ray.io/
   license: Apache-2.0
   license_family: Apache
   license_file:
@@ -337,7 +335,7 @@ about:
   description: |
     Ray is a fast and simple framework for building and running
     distributed applications.
-  doc_url: https://ray.readthedocs.io/
+  doc_url: https://docs.ray.io/en/latest/
   dev_url: https://github.com/ray-project/ray
 
 extra:
