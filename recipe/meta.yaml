@@ -124,9 +124,7 @@ outputs:
         - aioredis <2
         - colorful
         - frozenlist
-        # gpustat-0.6.0 has a dependency which does not exist on Windows;
-        # skip it there until gpustat is fixed as it is optional
-        - gpustat  # [not win]
+        - gpustat
         - jsonschema
         - requests
         - opencensus
