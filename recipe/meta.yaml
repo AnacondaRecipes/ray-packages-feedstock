@@ -101,6 +101,7 @@ outputs:
         - psutil
         - pyyaml
         - redis-py >=3.5.0
+        - requests
         - setproctitle =1.2.2
         - typing_extensions  # [py<38]
         - virtualenv
