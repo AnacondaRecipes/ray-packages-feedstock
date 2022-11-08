@@ -97,7 +97,7 @@ outputs:
         - numpy >=1.16 # [py<39]
         - numpy >=1.19.3 # [py>=39]
         - pickle5  # [py<38]
-        - protobuf >=3.15.3
+        - protobuf >=3.15.3,<4.0.0
         - psutil
         - pyyaml
         - redis-py >=3.5.0
@@ -125,18 +125,16 @@ outputs:
         - python
         - {{ pin_subpackage('ray-core', exact=True) }}
         - aiohttp >=3.7
-        - aiosignal
         - aiohttp-cors
         - aioredis <2
         - colorful
-        - frozenlist
         - gpustat
+        - opencensus
+        - prometheus_client >=0.7.1,<0.14.0
         - jsonschema
         - requests
-        - opencensus
-        - prometheus_client >=0.7.1
-        - py-spy >=0.2.0
         - smart_open
+        - py-spy >=0.2.0
 
     test:
       imports:
