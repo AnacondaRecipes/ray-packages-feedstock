@@ -128,7 +128,9 @@ outputs:
         - aiohttp-cors
         - aioredis <2
         - colorful
-        - gpustat
+        # gpustat has a dependency which does not exist on Windows;
+        # skip it there until gpustat is fixed as it is optional.
+        - gpustat  # [not win]
         - opencensus
         - prometheus_client >=0.7.1,<0.14.0
         - jsonschema
