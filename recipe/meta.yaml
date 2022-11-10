@@ -100,7 +100,6 @@ outputs:
         - protobuf >=3.15.3,<4.0.0
         - psutil
         - pyyaml
-        - redis-py >=3.5.0
         - requests
         - setproctitle =1.2.2
         - typing_extensions  # [py<38]
@@ -126,13 +125,13 @@ outputs:
         - {{ pin_subpackage('ray-core', exact=True) }}
         - aiohttp >=3.7
         - aiohttp-cors
-        - aioredis <2
         - colorful
         # gpustat has a dependency which does not exist on Windows;
         # skip it there until gpustat is fixed as it is optional.
         - gpustat  # [not win]
         - opencensus
         - prometheus_client >=0.7.1,<0.14.0
+        - pydantic
         - jsonschema
         - requests
         - smart_open
