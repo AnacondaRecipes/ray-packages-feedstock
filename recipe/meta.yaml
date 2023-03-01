@@ -214,6 +214,8 @@ outputs:
         - python -c "import ray; ray.init(include_dashboard=True)"
 
   - name: ray-data
+    build:
+      skip: true
     requirements:
       host:
         - python
