@@ -164,7 +164,6 @@ outputs:
 
   - name: ray-dashboard
     build:
-      skip: true
       script:
         - cd python/ray/dashboard/client
         - npm install
@@ -259,7 +258,6 @@ outputs:
 
   - name: ray-data
     build:
-      skip: true
     requirements:
       host:
         - python
@@ -300,7 +298,6 @@ outputs:
 
   - name: ray-tune
     build:
-      skip: true
       entry_points:
         - tune = ray.tune.scripts:cli
     requirements:
@@ -319,7 +316,6 @@ outputs:
 
   - name: ray-train
     build:
-      skip: true
     requirements:
       host:
         - python
