@@ -125,6 +125,8 @@ outputs:
   - name: ray-default
     build:
       skip: true  # [py<38]
+      script: build-core.sh  # [not win]
+      script: build-core.bat  # [win]
     requirements:
       host:
         - python
