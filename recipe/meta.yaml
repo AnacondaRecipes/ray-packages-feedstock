@@ -21,10 +21,13 @@ build:
   # skipping architectures that do not yet have bazel, so only build for linux64 & win64
   #skip: true  # [not ((linux and x86_64) or win)]
   # skip on MacOS, needs macos 10.15
-  skip: true  # [osx or (linux and (s390x or ppc64le))]
+  skip: true  # [osx or (linux and (s390x or ppc64le or aarch64))]
 
 # Need these up here for conda-smithy to handle them properly.
 requirements:
+  build:
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
   host:
     - python
     - pip
@@ -59,8 +62,7 @@ outputs:
 
   - name: ray-core
     build:
-      skip: true  # [py<38]
-      script: build-core.sh  # [not win]
+      script: build-core.sh   # [not win]
       script: build-core.bat  # [win]
     requirements:
       build:
@@ -112,17 +114,9 @@ outputs:
         - python -c "import ray; ray.init(include_dashboard=False)"
 
   - name: ray-default
-    build:
-      skip: true  # [py<38]
-      script: build-core.sh  # [not win]
-      script: build-core.bat  # [win]
     requirements:
       host:
         - python
-        - pip
-        - packaging
-        - setuptools
-        - wheel
       run:
         - python
         - {{ pin_subpackage('ray-core', exact=True) }}
@@ -139,7 +133,6 @@ outputs:
         - requests
         - smart_open
         - py-spy >=0.2.0
-
     test:
       imports:
         # ray-default is a convenience wrapper with no imports of its own
@@ -191,9 +184,6 @@ outputs:
       host:
         - nodejs
         - python
-        - pip
-        - setuptools
-        - wheel
       run:
         - python
         - {{ pin_subpackage('ray-default', exact=True) }}
@@ -210,9 +200,6 @@ outputs:
     requirements:
       host:
         - python
-        - pip
-        - setuptools
-        - wheel
       run:
         - python
         - {{ pin_subpackage('ray-core', exact=True) }}
@@ -249,9 +236,6 @@ outputs:
     requirements:
       host:
         - python
-        - pip
-        - setuptools
-        - wheel
       run:
         - python
         - {{ pin_subpackage('ray-core', exact=True) }}
@@ -273,9 +257,6 @@ outputs:
     requirements:
       host:
         - python
-        - pip
-        - setuptools
-        - wheel
       run:
         - python
         - {{ pin_subpackage('ray-tune', exact=True) }}
@@ -309,9 +290,6 @@ outputs:
     requirements:
       host:
         - python
-        - pip
-        - setuptools
-        - wheel
       run:
         - python
         - {{ pin_subpackage('ray-default', exact=True) }}
@@ -332,9 +310,6 @@ outputs:
     requirements:
       host:
         - python
-        - pip
-        - setuptools
-        - wheel
       run:
         - python
         - {{ pin_subpackage('ray-default', exact=True) }}
@@ -352,9 +327,6 @@ outputs:
     requirements:
       host:
         - python
-        - pip
-        - setuptools
-        - wheel
       run:
         - python
         - {{ pin_subpackage('ray-tune', exact=True) }}
