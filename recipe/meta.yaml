@@ -1,4 +1,4 @@
-{% set version = "2.0.1" %}
+{% set version = "2.3.0" %}
 
 package:
   name: ray-packages
@@ -6,7 +6,7 @@ package:
 
 source:
   url: https://github.com/ray-project/ray/archive/ray-{{ version }}.tar.gz
-  sha256: b8b2f0a99d2ac4c001ff11c78b4521b217e2a02df95fb6270fd621412143f28b
+  sha256: 0554b8711db70fae4c0acc8e01674901a84b81405f5247ed933b12ed047ff353
   patches:
     - patches/0003-Redis-deps-now-build-but-do-not-link.patch
     - patches/0004-Disable-making-non-core-entry-scripts.patch
@@ -19,50 +19,21 @@ build:
   # py36 is technically supported but we don't want to build for it
   skip: true  # [py<38]
   # skipping architectures that do not yet have bazel, so only build for linux64 & win64
-  #skip: true  # [not ((linux and x86_64) or win)]
   # skip on MacOS, needs macos 10.15
-  #skip: true  # [osx or (linux and (s390x or ppc64le or aarch64))]
-  script: build-core.sh   # [not win]
-  script: build-core.bat  # [win]
+  skip: true  # [osx or (linux and (s390x or ppc64le))]
 
 # Need these up here for conda-smithy to handle them properly.
-  requirements:
-    build:
-      - {{ compiler('c') }}
-      - {{ compiler('cxx') }}
-      - bazel ==4.2.2
-      - sysroot_linux-64 2.17  # [linux and x86_64]
-      - patchelf  # [linux]
-      - curl
-      - cython ==0.29.28
-      - make      # [not win]
-      - m2-make   # [win]
-      - python  
-    host:
-      - python
-      - pip
-      - packaging
-      - setuptools
-      - wheel
-    run:
-      - python
-      - aiosignal
-      - attrs
-      - click >=7.0,<=8.0.4
-      - colorama
-      - filelock
-      - frozenlist
-      - grpcio >=1.42,<1.49
-      - jsonschema
-      - msgpack-python >=1.0.0,<2.0.0
-      - numpy >=1.16 # [py<39]
-      - numpy >=1.19.3 # [py>=39]
-      - protobuf >=3.15.3,!=3.19.5,<4.0.0
-      - psutil
-      - pyyaml
-      - requests
-      - setproctitle =1.2.2
-      - virtualenv
+requirements:
+requirements:
+  build:
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+  host:
+    - python
+    - pip
+    - packaging
+    - setuptools
+    - wheel
 
 outputs:
   - name: ray-all
@@ -91,7 +62,8 @@ outputs:
 
   - name: ray-core
     build:
-      script: build-core.sh   # [not win]
+      skip: true  # [py<38]
+      script: build-core.sh  # [not win]
       script: build-core.bat  # [win]
     requirements:
       build:
@@ -143,6 +115,8 @@ outputs:
         - python -c "import ray; ray.init(include_dashboard=False)"
 
   - name: ray-default
+    build:
+      skip: true  # [py<38]
     requirements:
       host:
         - python
@@ -162,6 +136,7 @@ outputs:
         - requests
         - smart_open
         - py-spy >=0.2.0
+
     test:
       imports:
         # ray-default is a convenience wrapper with no imports of its own
