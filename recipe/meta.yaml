@@ -24,7 +24,6 @@ build:
 
 # Need these up here for conda-smithy to handle them properly.
 requirements:
-requirements:
   build:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
@@ -61,10 +60,10 @@ outputs:
         - ray
 
   - name: ray-core
+    script: build-core.sh  # [not win]
+    script: build-core.bat  # [win]
     build:
       skip: true  # [py<38]
-      script: build-core.sh  # [not win]
-      script: build-core.bat  # [win]
     requirements:
       build:
         - {{ compiler('c') }}
