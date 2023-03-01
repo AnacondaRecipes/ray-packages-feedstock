@@ -271,6 +271,9 @@ outputs:
     test:
       imports:
         - ray.data
+      requires:
+        # For pkg_resources
+        - setuptools
 
   - name: ray-serve
     build:
