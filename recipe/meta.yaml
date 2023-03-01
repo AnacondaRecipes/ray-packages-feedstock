@@ -27,6 +27,8 @@ requirements:
   build:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
+    - patch          # [not win]
+    - m2-patch       # [win]
   host:
     - python
     - pip
@@ -69,13 +71,14 @@ outputs:
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
         - bazel ==4.2.2
-        - sysroot_linux-64 2.17  # [linux and x86_64]
-        - patchelf  # [linux]
         - curl
         - cython ==0.29.28
-        - make      # [not win]
+        - git
         - m2-make   # [win]
+        - make      # [not win]
+        - patchelf  # [linux]
         - python  
+        - sysroot_linux-64 2.17  # [linux and x86_64]
       host:
         - python
         - openjdk =11
