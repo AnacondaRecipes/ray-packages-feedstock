@@ -25,17 +25,6 @@ build:
 
 # Need these up here for conda-smithy to handle them properly.
 requirements:
-  build:
-    - {{ compiler('c') }}
-    - {{ compiler('cxx') }}
-    - git
-    - bazel ==4.2.2
-    - cython ==0.29.28
-    - curl
-    - make           # [not win]
-    - patch          # [not win]
-    - m2-make        # [win]
-    - m2-patch       # [win]
   host:
     - python
     - pip
