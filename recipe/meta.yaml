@@ -20,7 +20,7 @@ build:
   skip: true  # [py<38]
   # skipping architectures that do not yet have bazel, so only build for linux64 & win64
   # skip on MacOS, needs macos 10.15
-  skip: true  # [(linux and (s390x or ppc64le))]
+  skip: true  # [osx or (linux and (s390x or ppc64le))]
 
 # Need these up here to handle them properly.
 requirements:
@@ -35,6 +35,7 @@ requirements:
     - git
     - m2-make   # [win]
     - make      # [not win]
+    - pkg-config  # [linux and aarch64]
     - patchelf  # [linux]
     - python  
     - sysroot_linux-64 2.17  # [linux and x86_64]
@@ -87,6 +88,7 @@ outputs:
         - git
         - m2-make   # [win]
         - make      # [not win]
+        - pkg-config  # [linux and aarch64]
         - patchelf  # [linux]
         - python  
         - sysroot_linux-64 2.17  # [linux and x86_64]
