@@ -4,8 +4,8 @@ set -xe
 # For some weird reason, ar is not picked up on linux-aarch64
 if [ $(uname -s) = "Linux" ] && [ ! -f "${BUILD_PREFIX}/bin/ar" ]; then
     ln -s "${BUILD}-ar" "${BUILD_PREFIX}/bin/ar"
+    ln -s "$RANLIB" "${BUILD_PREFIX}/bin/ranlib"
 fi
-
 
 cd python/
 export SKIP_THIRDPARTY_INSTALL=1
