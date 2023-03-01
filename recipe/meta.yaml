@@ -17,10 +17,11 @@ source:
 build:
   number: 0
   # py36 is technically supported but we don't want to build for it
-  skip: true  # [py<37]
+  skip: true  # [py<38]
   # skipping architectures that do not yet have bazel, so only build for linux64 & win64
-  skip: true  # [osx]
   skip: true  # [not (x86_64 or win)]
+  # skip on MacOS, needs macos 10.15
+  skip: true  # [osx]
 
 # Need these up here for conda-smithy to handle them properly.
 requirements:
@@ -35,6 +36,12 @@ requirements:
     - patch          # [not win]
     - m2-make        # [win]
     - m2-patch       # [win]
+  host:
+    - python
+    - pip
+    - packaging
+    - setuptools
+    - wheel
 
 outputs:
   - name: ray-all
@@ -62,14 +69,17 @@ outputs:
         - ray
 
   - name: ray-core
-    script: build-core.sh  # [not win]
-    script: build-core.bat  # [win]
+    build:
+      skip: true  # [py<38]
+      script: build-core.sh  # [not win]
+      script: build-core.bat  # [win]
     requirements:
       build:
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
         - bazel ==4.2.2
         - sysroot_linux-64 2.17  # [linux and x86_64]
+        - patchelf  # [linux]
         - curl
         - cython ==0.29.28
         - make      # [not win]
@@ -79,30 +89,26 @@ outputs:
         - python
         - pip
         - packaging
-        # pickle5 needs to be here, otherwise setup.py tries
-        # to install it and it fails on conda-forge Windows CI
-        - pickle5  # [py<38]
+        - setuptools
+        - wheel
       run:
         - python
         - aiosignal
         - attrs
-        - click >=7.0, <=8.0.4
+        - click >=7.0,<=8.0.4
         - colorama
-        - dataclasses  # [py<37]
         - filelock
         - frozenlist
-        - grpcio >=1.28.1,<1.48
+        - grpcio >=1.42,<1.49
         - jsonschema
-        - msgpack-python >=1.0.0, <2.0.0
+        - msgpack-python >=1.0.0,<2.0.0
         - numpy >=1.16 # [py<39]
         - numpy >=1.19.3 # [py>=39]
-        - pickle5  # [py<38]
-        - protobuf >=3.15.3,<4.0.0
+        - protobuf >=3.15.3,!=3.19.5,<4.0.0
         - psutil
         - pyyaml
         - requests
         - setproctitle =1.2.2
-        - typing_extensions  # [py<38]
         - virtualenv
 
     test:
@@ -114,12 +120,18 @@ outputs:
         - ray._private.state
         - ray._private.worker
       commands:
-        - python -c "import ray; ray.init()"
+        - python -c "import ray; ray.init(include_dashboard=False)"
 
   - name: ray-default
+    build:
+      skip: true  # [py<38]
     requirements:
       host:
         - python
+        - pip
+        - packaging
+        - setuptools
+        - wheel
       run:
         - python
         - {{ pin_subpackage('ray-core', exact=True) }}
@@ -188,14 +200,36 @@ outputs:
       host:
         - nodejs
         - python
+        - pip
+        - setuptools
+        - wheel
       run:
         - python
         - {{ pin_subpackage('ray-default', exact=True) }}
+        - typing-extensions
     test:
       imports:
         - ray.dashboard
       commands:
         - python -c "import ray; ray.init(include_dashboard=True)"
+
+  - name: ray-data
+    requirements:
+      host:
+        - python
+        - pip
+        - setuptools
+        - wheel
+      run:
+        - python
+        - {{ pin_subpackage('ray-core', exact=True) }}
+        - numpy >=1.20
+        - pandas >=1.3
+        - pyarrow >=6.0.1
+        - fsspec
+    test:
+      imports:
+        - ray.data
 
   - name: ray-debug
     build:
@@ -222,6 +256,9 @@ outputs:
     requirements:
       host:
         - python
+        - pip
+        - setuptools
+        - wheel
       run:
         - python
         - {{ pin_subpackage('ray-core', exact=True) }}
@@ -243,6 +280,9 @@ outputs:
     requirements:
       host:
         - python
+        - pip
+        - setuptools
+        - wheel
       run:
         - python
         - {{ pin_subpackage('ray-tune', exact=True) }}
@@ -252,16 +292,18 @@ outputs:
         - matplotlib !=3.4.3
         # scikit-image uses a deprecated import for pooch, causing rllib to fail on import
         # pinning pooch to <1.5 solves this issue for now
-        - pooch <1.5
+        #- pooch <1.5
         - pyyaml
         - scikit-image
         - scipy
-
+        - rich
     test:
       imports:
         - ray.rllib
       commands:
-        - rllib --help
+        # some interaction with rich and the test runner in azure
+        # xref https://github.com/Textualize/rich/issues/2411 ?
+        - python -c "import subprocess, os; os.environ['PYTHONIOENCODING']='utf-8'; subprocess.run(['rllib', '--help'], capture_output=True, check=True)"
 
   - name: ray-serve
     build:
@@ -274,13 +316,17 @@ outputs:
     requirements:
       host:
         - python
+        - pip
+        - setuptools
+        - wheel
       run:
         - python
-        - {{ pin_subpackage('ray-core', exact=True) }}
+        - {{ pin_subpackage('ray-default', exact=True) }}
         - uvicorn
         - requests
         - starlette
         - fastapi
+        - aiorwlock
     test:
       imports:
         - ray.serve
@@ -293,9 +339,12 @@ outputs:
     requirements:
       host:
         - python
+        - pip
+        - setuptools
+        - wheel
       run:
         - python
-        - {{ pin_subpackage('ray-core', exact=True) }}
+        - {{ pin_subpackage('ray-default', exact=True) }}
         - pandas
         - requests
         - tabulate
@@ -303,6 +352,22 @@ outputs:
     test:
       imports:
         - ray.tune
+
+  - name: ray-train
+    build:
+      skip: true
+    requirements:
+      host:
+        - python
+        - pip
+        - setuptools
+        - wheel
+      run:
+        - python
+        - {{ pin_subpackage('ray-tune', exact=True) }}
+    test:
+      imports:
+        - ray.train
 
 about:
   home: https://www.ray.io/
