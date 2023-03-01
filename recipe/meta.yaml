@@ -21,7 +21,7 @@ build:
   # skipping architectures that do not yet have bazel, so only build for linux64 & win64
   #skip: true  # [not ((linux and x86_64) or win)]
   # skip on MacOS, needs macos 10.15
-  skip: true  # [osx or (linux and (s390x or ppc64le or aarch64))]
+  #skip: true  # [osx or (linux and (s390x or ppc64le or aarch64))]
 
 # Need these up here for conda-smithy to handle them properly.
 requirements:
