@@ -79,6 +79,7 @@ outputs:
         - python  
       host:
         - python
+        - openjdk =11
         - pip
         - packaging
         - setuptools
