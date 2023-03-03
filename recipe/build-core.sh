@@ -5,7 +5,7 @@ set -xe
 if [ $(uname -s) = "Linux" ] && [ ! -f "${BUILD_PREFIX}/bin/ar" ]; then
     ln -s "${BUILD}-ar" "${BUILD_PREFIX}/bin/ar"
     ln -s "$RANLIB" "${BUILD_PREFIX}/bin/ranlib"
-    ln -sf $(which $LD) "${BUILD_PREFIX}/bin/ld"
+    ln -sf "$LD" "${BUILD_PREFIX}/bin/ld"
 fi
 
 cd python/
