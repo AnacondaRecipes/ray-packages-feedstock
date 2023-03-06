@@ -19,7 +19,7 @@ build:
   # py36 is technically supported but we don't want to build for it
   skip: true  # [py<38]
   # skipping architectures that do not yet have bazel, so only build for linux64 & win64
-  skip: true  # [(linux and (s390x or ppc64le))]
+  skip: true  # [linux and (s390x or ppc64le)]
 
 # Need these up here to handle them properly.
 requirements:
@@ -28,10 +28,11 @@ requirements:
     - {{ compiler('cxx') }}
     - patch          # [not win]
     - m2-patch       # [win]
-    - bazel ==4.2.2
+    - bazel >=4.2.2
     - curl
     - cython ==0.29.28
     - git
+    - jemalloc  # [linux and aarch64]
     - m2-make   # [win]
     - make      # [not win]
     - pkg-config  # [osx or (linux and aarch64)]
@@ -84,10 +85,11 @@ outputs:
         - {{ compiler('cxx') }}
         - patch          # [not win]
         - m2-patch       # [win]
-        - bazel ==4.2.2
+        - bazel >=4.2.2
         - curl
         - cython ==0.29.28
         - git
+        - jemalloc  # [linux and aarch64]
         - m2-make   # [win]
         - make      # [not win]
         - pkg-config  # [osx or (linux and aarch64)]
