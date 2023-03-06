@@ -227,7 +227,6 @@ outputs:
       # Holding off on ray-rllib until we update to newer version. The dependencies have been
       # cleaned up quite a bit and no longer require gym-atari & atari_py:
       # https://github.com/ray-project/ray/blob/55709bac7a6577b57a76cfcc6b295eda2468acad/python/setup.py#L103
-      skip: true
       entry_points:
         - rllib = ray.rllib.scripts:cli
     requirements:
@@ -237,7 +236,6 @@ outputs:
         - python
         - {{ pin_subpackage('ray-tune', exact=True) }}
         - dm-tree
-        # TODO: gymnasium ==0.26.3 is missing in defaults
         - gymnasium ==0.26.3
         - lz4
         - matplotlib !=3.4.3
