@@ -41,7 +41,6 @@ requirements:
     - sysroot_linux-64 2.17  # [linux and x86_64]
   host:
     - python
-    - hiredis  # [osx]
     - pip
     - packaging
     - pkg-config  # [osx]
@@ -99,7 +98,6 @@ outputs:
         - sysroot_linux-64 2.17  # [linux and x86_64]
       host:
         - python
-        - hiredis  # [osx]
         - openjdk =11
         - pip
         - packaging
@@ -227,9 +225,6 @@ outputs:
 
   - name: ray-rllib
     build:
-      # Holding off on ray-rllib until we update to newer version. The dependencies have been
-      # cleaned up quite a bit and no longer require gym-atari & atari_py:
-      # https://github.com/ray-project/ray/blob/55709bac7a6577b57a76cfcc6b295eda2468acad/python/setup.py#L103
       entry_points:
         - rllib = ray.rllib.scripts:cli
     requirements:
