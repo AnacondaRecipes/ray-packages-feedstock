@@ -19,8 +19,7 @@ build:
   # py36 is technically supported but we don't want to build for it
   skip: true  # [py<38]
   # skipping architectures that do not yet have bazel, so only build for linux64 & win64
-  # skip on MacOS, needs macos 10.15
-  skip: true  # [osx or (linux and (s390x or ppc64le))]
+  skip: true  # [(linux and (s390x or ppc64le))]
 
 # Need these up here to handle them properly.
 requirements:
