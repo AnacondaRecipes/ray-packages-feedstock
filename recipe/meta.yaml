@@ -19,7 +19,7 @@ build:
   # py36 is technically supported but we don't want to build for it
   skip: true  # [py<38]
   # skipping architectures that do not yet have bazel, so only build for linux64 & win64
-  skip: true  # [linux and (s390x or ppc64le)]
+  skip: true  # [osx or (linux and (s390x or ppc64le))]
 
 # Need these up here to handle them properly.
 requirements:
@@ -32,7 +32,6 @@ requirements:
     - curl
     - cython ==0.29.28
     - git
-    - jemalloc  # [linux and aarch64]
     - m2-make   # [win]
     - make      # [not win]
     - pkg-config  # [osx or (linux and aarch64)]
@@ -89,11 +88,10 @@ outputs:
         - curl
         - cython ==0.29.28
         - git
-        - jemalloc  # [linux and aarch64]
         - m2-make   # [win]
         - make      # [not win]
         - pkg-config  # [osx or (linux and aarch64)]
-        - patchelf  # [linux]
+        #- patchelf  # [linux]
         - python  
         - sysroot_linux-64 2.17  # [linux and x86_64]
       host:
@@ -236,10 +234,6 @@ outputs:
         - dm-tree
         - gymnasium ==0.26.3
         - lz4
-        - matplotlib !=3.4.3
-        # scikit-image uses a deprecated import for pooch, causing rllib to fail on import
-        # pinning pooch to <1.5 solves this issue for now
-        #- pooch <1.5
         - pyyaml
         - scikit-image
         - scipy
