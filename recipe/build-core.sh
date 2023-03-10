@@ -1,6 +1,13 @@
 #!/bin/bash
 set -xe
 
+# For some weird reason, ar is not picked up on linux-aarch64
+if [ $(uname -s) = "Linux" ] && [ ! -f "${BUILD_PREFIX}/bin/ar" ]; then
+    ln -s "${BUILD}-ar" "${BUILD_PREFIX}/bin/ar"
+    ln -s "$RANLIB" "${BUILD_PREFIX}/bin/ranlib"
+    ln -sf "$LD" "${BUILD_PREFIX}/bin/ld"
+fi
+
 cd python/
 export SKIP_THIRDPARTY_INSTALL=1
 "${PYTHON}" setup.py build
@@ -10,7 +17,7 @@ export SKIP_THIRDPARTY_INSTALL=1
 grep -lR ELF build/ | xargs chmod +w
 
 # now install the thing so conda could pick it up
-"${PYTHON}" setup.py install
+"${PYTHON}" setup.py install  --single-version-externally-managed --root=/
 
 # now clean everything up so subsequent builds (for potentially
 # different Python version) do not stumble on some after-effects
@@ -21,3 +28,11 @@ rm -rf "$SRC_DIR/../b-o" "$SRC_DIR/../bazel-root"
 # this is needed because on many build systems the cache is actually under /root.
 # but this may not always be true/allowed, hence the or operation.
 rm -rf /root/.cache/bazel || true
+
+# Remove RUNPATH and set RPATH
+# if [[ "$target_platform" == "linux-"* ]]; then
+#   for f in "ray/_raylet.so" "ray/core/src/ray/raylet/raylet" "ray/core/src/ray/gcs/gcs_server"; do
+#     patchelf --remove-rpath $SP_DIR/$f
+#     patchelf --force-rpath --add-rpath $PREFIX/lib $SP_DIR/$f
+#   done
+# fi
