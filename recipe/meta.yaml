@@ -15,7 +15,7 @@ source:
     - patches/0013-Add-bazel-linkopts-libs.patch
 
 build:
-  number: 0
+  number: 1
   # py36 is technically supported but we don't want to build for it
   skip: true  # [py<38]
   # skipping architectures that do not yet have bazel, so only build for linux64 & win64.
