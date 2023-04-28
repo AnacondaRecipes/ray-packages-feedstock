@@ -1,0 +1,42 @@
+diff --git a/.bazelrc b/.bazelrc
+index f8b916446e..d38be3f832 100644
+--- a/.bazelrc
++++ b/.bazelrc
+@@ -44,8 +44,8 @@ build:clang-cl --per_file_copt="-\\.(asm|S)$@-Werror"
+ build:msvc-cl     --per_file_copt="-\\.(asm|S)$@-WX"
+ # Ignore warnings for protobuf generated files and external projects.
+ build --per_file_copt="\\.pb\\.cc$@-w"
+-build --per_file_copt="-\\.(asm|S)$,external/.*@-w"
+-#build --per_file_copt="external/.*@-Wno-unused-result"
++build:linux --per_file_copt="-\\.(asm|S)$,external/.*@-w,-Wno-error=implicit-function-declaration"
++build:macos --per_file_copt="-\\.(asm|S)$,external/.*@-w,-Wno-error=implicit-function-declaration"
+ # Ignore minor warnings for host tools, which we generally can't control
+ build:clang-cl --host_copt="-Wno-inconsistent-missing-override"
+ build:clang-cl --host_copt="-Wno-microsoft-unqualified-friend"
+diff --git a/src/ray/gcs/gcs_server/gcs_placement_group_manager.cc b/src/ray/gcs/gcs_server/gcs_placement_group_manager.cc
+index 4e254c304b..2851fe41f4 100644
+--- a/src/ray/gcs/gcs_server/gcs_placement_group_manager.cc
++++ b/src/ray/gcs/gcs_server/gcs_placement_group_manager.cc
+@@ -854,7 +854,7 @@ void GcsPlacementGroupManager::UpdatePlacementGroupLoad() {
+       break;
+     }
+   }
+-  gcs_resource_manager_.UpdatePlacementGroupLoad(move(placement_group_load));
++  gcs_resource_manager_.UpdatePlacementGroupLoad(std::move(placement_group_load));
+ }
+ 
+ void GcsPlacementGroupManager::Initialize(const GcsInitData &gcs_init_data) {
+diff --git a/src/ray/thirdparty/dlmalloc.c b/src/ray/thirdparty/dlmalloc.c
+index 62a2a0400c..41540c8835 100644
+--- a/src/ray/thirdparty/dlmalloc.c
++++ b/src/ray/thirdparty/dlmalloc.c
+@@ -521,6 +521,9 @@ MAX_RELEASE_CHECK_RATE   default: 4095 unless not HAVE_MMAP
+   improvement at the expense of carrying around more memory.
+ */
+ 
++#ifdef __clang__
++#pragma clang diagnostic ignored "-Weverything"
++#endif
+ 
+ /* Version identifier to allow people to support multiple versions */
+ #ifndef DLMALLOC_VERSION
