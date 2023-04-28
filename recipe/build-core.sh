@@ -1,11 +1,10 @@
 #!/bin/bash
 set -xe
 
-# For some weird reason, ar is not picked up on linux-aarch64
-if [ $(uname -s) = "Linux" ] && [ ! -f "${BUILD_PREFIX}/bin/ar" ]; then
-    ln -s "${BUILD}-ar" "${BUILD_PREFIX}/bin/ar"
-    ln -s "$RANLIB" "${BUILD_PREFIX}/bin/ranlib"
-    ln -sf "$LD" "${BUILD_PREFIX}/bin/ld"
+if [[ "${target_platform}" == osx-* ]]; then
+  export LDFLAGS="${LDFLAGS} -lz -framework CoreFoundation -Xlinker -undefined -Xlinker dynamic_lookup"
+else
+  export LDFLAGS="${LDFLAGS} -lrt"
 fi
 
 bazel clean --expunge
@@ -28,14 +27,13 @@ grep -lR ELF build/ | xargs chmod +w
 bazel "--output_user_root=$SRC_DIR/../bazel-root" "--output_base=$SRC_DIR/../b-o" clean --expunge
 bazel "--output_user_root=$SRC_DIR/../bazel-root" "--output_base=$SRC_DIR/../b-o" shutdown
 rm -rf "$SRC_DIR/../b-o" "$SRC_DIR/../bazel-root"
-# this is needed because on many build systems the cache is actually under /root.
-# but this may not always be true/allowed, hence the or operation.
-rm -rf /root/.cache/bazel || true
 
-# Remove RUNPATH and set RPATH
-# if [[ "$target_platform" == "linux-"* ]]; then
-#   for f in "ray/_raylet.so" "ray/core/src/ray/raylet/raylet" "ray/core/src/ray/gcs/gcs_server"; do
-#     patchelf --remove-rpath $SP_DIR/$f
-#     patchelf --force-rpath --add-rpath $PREFIX/lib $SP_DIR/$f
-#   done
-# fi
+if [[ "$target_platform" == "linux-"* ]]; then
+  ls -lR $SP_DIR
+  # Remove RUNPATH and set RPATH
+  for f in "ray/_raylet.so" "ray/core/src/ray/raylet/raylet" "ray/core/src/ray/gcs/gcs_server"; do
+    chmod +w $SP_DIR/$f
+    patchelf --remove-rpath $SP_DIR/$f
+    patchelf --force-rpath --add-rpath $PREFIX/lib $SP_DIR/$f
+  done
+fi

@@ -1,0 +1,12 @@
+diff --git a/.bazelrc b/.bazelrc
+index d38be3f832..766169a7c0 100644
+--- a/.bazelrc
++++ b/.bazelrc
+@@ -18,6 +18,7 @@ build:linux --force_pic
+ build:macos --force_pic
+ build:clang-cl --compiler=clang-cl
+ build:msvc-cl --compiler=msvc-cl
++build --local_ram_resources=HOST_RAM*.5 --local_cpu_resources=2 --jobs=2
+ # `LC_ALL` and `LANG` is needed for cpp worker tests, because they will call "ray start".
+ # If we don't add them, python's `click` library will raise an error.
+ test --test_env=LC_ALL
