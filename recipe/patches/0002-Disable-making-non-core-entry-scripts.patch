@@ -8,21 +8,22 @@ Subject: [PATCH 2/5] Disable making non-core entry scripts
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/python/setup.py b/python/setup.py
-index c9d9ae574..6c60acbc5 100644
+index 0b1134f93b..e630e9b80e 100644
 --- a/python/setup.py
 +++ b/python/setup.py
-@@ -780,9 +780,9 @@ setuptools.setup(
+@@ -797,9 +797,9 @@ setuptools.setup(
      entry_points={
          "console_scripts": [
              "ray=ray.scripts.scripts:main",
 -            "rllib=ray.rllib.scripts:cli [rllib]",
 -            "tune=ray.tune.cli.scripts:cli",
 -            "serve=ray.serve.scripts:cli",
-+            #"rllib=ray.rllib.scripts:cli [rllib]",
-+            #"tune=ray.tune.cli.scripts:cli",
-+            #"serve=ray.serve.scripts:cli",
++            # "rllib=ray.rllib.scripts:cli [rllib]",
++            # "tune=ray.tune.cli.scripts:cli",
++            # "serve=ray.serve.scripts:cli",
          ]
      },
      package_data={
 -- 
 2.38.1.windows.1
+
