@@ -72,10 +72,12 @@ outputs:
         - patchelf  # [linux]
         - curl
         - cython >=0.29.32
-        - make
+        - make  # [not win]
+        - m2-make  # [win]
         - m2-bash  # [win]
         - python
         - git  # [not win]
+        - pkg-config  # [osx or (linux and aarch64)]
       host:
         - python
         - pip
