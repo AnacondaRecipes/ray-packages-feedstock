@@ -347,7 +347,7 @@ about:
     distributed applications. It is split into ray-core, ray-default,
     ray-dashboard, ray-serve, ray-rllib, ray-k8s, ray-data, ray-tune,
     ray-train, ray-air and ray-all packages.
-  doc_url: https://ray.readthedocs.io/
+  doc_url: https://docs.ray.io
   dev_url: https://github.com/ray-project/ray
 
 extra:
