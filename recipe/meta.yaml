@@ -293,6 +293,8 @@ outputs:
 
   - name: ray-tune
     build:
+      # Not yet compatible with 3.11
+      skip: true  # [py>310]
       entry_points:
         - tune = ray.tune.scripts:cli
     requirements:
