@@ -8,6 +8,9 @@ if [ $(uname -s) = "Linux" ] && [ ! -f "${BUILD_PREFIX}/bin/ar" ]; then
     ln -sf "$LD" "${BUILD_PREFIX}/bin/ld"
 fi
 
+bazel clean --expunge
+bazel shutdown
+
 cd python/
 export SKIP_THIRDPARTY_INSTALL=1
 "${PYTHON}" setup.py build
@@ -22,7 +25,7 @@ grep -lR ELF build/ | xargs chmod +w
 # now clean everything up so subsequent builds (for potentially
 # different Python version) do not stumble on some after-effects
 "${PYTHON}" setup.py clean --all
-bazel "--output_user_root=$SRC_DIR/../bazel-root" "--output_base=$SRC_DIR/../b-o" clean
+bazel "--output_user_root=$SRC_DIR/../bazel-root" "--output_base=$SRC_DIR/../b-o" clean --expunge
 bazel "--output_user_root=$SRC_DIR/../bazel-root" "--output_base=$SRC_DIR/../b-o" shutdown
 rm -rf "$SRC_DIR/../b-o" "$SRC_DIR/../bazel-root"
 # this is needed because on many build systems the cache is actually under /root.
