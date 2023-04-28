@@ -15,14 +15,15 @@ source:
   #   - patches/0005-Add-bazel-linkopts-libs.patch
     - patches/0006-flexible-bazel-version.patch
     - patches/0007-fix-namespace-errors.patch
+    - patches/0008-fix-out-of-memory-errors.patch
+
 
 build:
   number: 0
   # py36 is technically supported but we don't want to build for it
   skip: true  # [py<38]
-  # skipping architectures that do not yet have bazel, so only build for linux64 & win64.
-  # skipping osx and aarch64 for now, as there are complicated bazel errors with external redis (symbols, dependant libraries, and objects).
-  skip: true  # [osx or (linux and (s390x or ppc64le or aarch64))]
+  # skipping architectures that do not yet have bazel
+  skip: true  # [(linux and (s390x or ppc64le))]
 
 # Need these up here to handle them properly.
 requirements:
