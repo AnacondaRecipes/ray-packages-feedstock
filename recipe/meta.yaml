@@ -180,7 +180,7 @@ outputs:
         - cp -R ./build $SP_DIR/ray/dashboard/client/build  # [not win]
     requirements:
       host:
-        - nodejs
+        - nodejs <18
         - python
       run:
         - python
