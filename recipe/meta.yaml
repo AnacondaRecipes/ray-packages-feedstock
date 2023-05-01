@@ -17,7 +17,8 @@ source:
 build:
   number: 1
   # py36 is technically supported but we don't want to build for it
-  skip: true  # [py<38]
+  # ray-core is the only output to support 3.11 at the moment.
+  skip: true  # [py<38 or py>310]
   # skipping architectures that do not yet have bazel, so only build for linux64 & win64.
   # skipping osx and aarch64 for now, as there are complicated bazel errors with external redis (symbols, dependant libraries, and objects).
   skip: true  # [osx or (linux and (s390x or ppc64le or aarch64))]
