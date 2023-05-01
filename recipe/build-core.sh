@@ -1,6 +1,12 @@
 #!/bin/bash
 set -xe
 
+if [[ "${target_platform}" == osx-* ]]; then
+  export LDFLAGS="${LDFLAGS} -lz -framework CoreFoundation -Xlinker -undefined -Xlinker dynamic_lookup"
+else
+  export LDFLAGS="${LDFLAGS} -lrt"
+fi
+
 # For some weird reason, ar is not picked up on linux-aarch64
 if [ $(uname -s) = "Linux" ] && [ ! -f "${BUILD_PREFIX}/bin/ar" ]; then
     ln -s "${BUILD}-ar" "${BUILD_PREFIX}/bin/ar"
