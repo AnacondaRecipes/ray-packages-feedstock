@@ -34,7 +34,7 @@ requirements:
     - m2-patch       # [win]
     - bazel ==4.2.2
     - curl
-    - cython ==0.29.28
+    - cython >=0.29.32
     - git
     - m2-make   # [win]
     - make      # [not win]
