@@ -24,8 +24,9 @@ build:
   number: 0
   # py36 is technically supported but we don't want to build for it
   skip: true  # [py<38]
-  # skipping architectures that do not yet have bazel
-  skip: true  # [(linux and (s390x or ppc64le))]
+  # skipping architectures that do not yet have bazel (s390x or ppc64le)
+  # linux-aarch64 is still failing to compile redis
+  skip: true  # [(linux and (aarch64 or s390x or ppc64le))]
 
 requirements:
   build:
