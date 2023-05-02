@@ -26,7 +26,7 @@ export SKIP_THIRDPARTY_INSTALL=1
 grep -lR ELF build/ | xargs chmod +w
 
 # now install the thing so conda could pick it up
-"${PYTHON}" setup.py install  --single-version-externally-managed --root=/
+${PYTHON} -m pip install . --no-deps --no-build-isolation
 
 # now clean everything up so subsequent builds (for potentially
 # different Python version) do not stumble on some after-effects
