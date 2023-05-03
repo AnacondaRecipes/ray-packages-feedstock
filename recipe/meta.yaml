@@ -8,19 +8,22 @@ source:
   url: https://github.com/ray-project/ray/archive/ray-{{ version }}.tar.gz
   sha256: 0554b8711db70fae4c0acc8e01674901a84b81405f5247ed933b12ed047ff353
   patches:
-    - patches/0003-Redis-deps-now-build-but-do-not-link.patch
+    # - patches/0003-Redis-deps-now-build-but-do-not-link.patch
     - patches/0004-Disable-making-non-core-entry-scripts.patch
     - patches/0010-Remove-all-dependencies-from-setup.py.patch
     - patches/0011-Ignore-warnings-in-event.cc-and-logging.cc.patch
     - patches/0013-Add-bazel-linkopts-libs.patch
+    # https://github.com/ray-project/ray/pull/34151
+    - patches/0014-fix-namespaces.patch
 
 build:
-  number: 0
+  number: 1
   # py36 is technically supported but we don't want to build for it
-  skip: true  # [py<38]
+  # ray-core is the only output to support 3.11 at the moment.
+  skip: true  # [py<38 or py>310]
   # skipping architectures that do not yet have bazel, so only build for linux64 & win64.
   # skipping osx and aarch64 for now, as there are complicated bazel errors with external redis (symbols, dependant libraries, and objects).
-  skip: true  # [osx or (linux and (s390x or ppc64le or aarch64))]
+  skip: true  # [(linux and (s390x or ppc64le or aarch64))]
 
 # Need these up here to handle them properly.
 requirements:
@@ -31,7 +34,7 @@ requirements:
     - m2-patch       # [win]
     - bazel ==4.2.2
     - curl
-    - cython ==0.29.28
+    - cython >=0.29.32
     - git
     - m2-make   # [win]
     - make      # [not win]
@@ -179,7 +182,7 @@ outputs:
         - cp -R ./build $SP_DIR/ray/dashboard/client/build  # [not win]
     requirements:
       host:
-        - nodejs
+        - nodejs <18
         - python
       run:
         - python

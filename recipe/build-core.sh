@@ -1,6 +1,15 @@
 #!/bin/bash
 set -xe
 
+bazel clean --expunge
+bazel shutdown
+
+if [[ "${target_platform}" == osx-* ]]; then
+  export LDFLAGS="${LDFLAGS} -lz -framework CoreFoundation -Xlinker -undefined -Xlinker dynamic_lookup"
+else
+  export LDFLAGS="${LDFLAGS} -lrt"
+fi
+
 # For some weird reason, ar is not picked up on linux-aarch64
 if [ $(uname -s) = "Linux" ] && [ ! -f "${BUILD_PREFIX}/bin/ar" ]; then
     ln -s "${BUILD}-ar" "${BUILD_PREFIX}/bin/ar"
@@ -17,12 +26,12 @@ export SKIP_THIRDPARTY_INSTALL=1
 grep -lR ELF build/ | xargs chmod +w
 
 # now install the thing so conda could pick it up
-"${PYTHON}" setup.py install  --single-version-externally-managed --root=/
+${PYTHON} -m pip install . --no-deps --no-build-isolation
 
 # now clean everything up so subsequent builds (for potentially
 # different Python version) do not stumble on some after-effects
 "${PYTHON}" setup.py clean --all
-bazel "--output_user_root=$SRC_DIR/../bazel-root" "--output_base=$SRC_DIR/../b-o" clean
+bazel "--output_user_root=$SRC_DIR/../bazel-root" "--output_base=$SRC_DIR/../b-o" clean --expunge
 bazel "--output_user_root=$SRC_DIR/../bazel-root" "--output_base=$SRC_DIR/../b-o" shutdown
 rm -rf "$SRC_DIR/../b-o" "$SRC_DIR/../bazel-root"
 # this is needed because on many build systems the cache is actually under /root.
