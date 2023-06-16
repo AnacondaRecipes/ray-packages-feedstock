@@ -33,7 +33,7 @@ requirements:
     - bazel ==4.2.2
     - curl
     - cython >=0.29.32
-    - git
+    - git  # [not win]
     - m2-make   # [win]
     - make      # [not win]
     - pkg-config  # [osx or (linux and aarch64)]
@@ -89,7 +89,7 @@ outputs:
         - bazel ==4.2.2
         - curl
         - cython ==0.29.28
-        - git
+        - git # [not win]
         - m2-make   # [win]
         - make      # [not win]
         - pkg-config  # [osx or (linux and aarch64)]
