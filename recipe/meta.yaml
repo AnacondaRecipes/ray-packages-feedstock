@@ -6,6 +6,7 @@ package:
 
 source:
   url: https://github.com/ray-project/ray/archive/ray-{{ version }}.tar.gz
+  sha256: 3ca536ad9698885bb2b8308b1fa1d47193d3dfc26e19456b01044816f0805d19
   patches:
     # - patches/0003-Redis-deps-now-build-but-do-not-link.patch
     - patches/0004-Disable-making-non-core-entry-scripts.patch
