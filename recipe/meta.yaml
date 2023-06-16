@@ -30,7 +30,7 @@ requirements:
     - {{ compiler('cxx') }}
     - patch          # [not win]
     - m2-patch       # [win]
-    - bazel ==4.2.2
+    - bazel 5.4.1
     - curl
     - cython >=0.29.32
     - git  # [not win]
@@ -86,7 +86,7 @@ outputs:
         - {{ compiler('cxx') }}
         - patch          # [not win]
         - m2-patch       # [win]
-        - bazel ==4.2.2
+        - bazel 5.4.1
         - curl
         - cython ==0.29.28
         - git # [not win]
