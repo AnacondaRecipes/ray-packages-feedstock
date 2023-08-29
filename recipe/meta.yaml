@@ -31,11 +31,9 @@ requirements:
     # that is incompatible with the ray bazel rules.
     - bazel 5.4.1
     - curl
-    - cython 0.29.32
     - git         # [not win]
     - m2-make     # [win]
     - make        # [not win]
-    - pkg-config  # [osx or (linux and aarch64)]
     - patchelf    # [linux]
     - python  
     - sysroot_linux-64 2.17  # [linux and x86_64]
@@ -43,9 +41,10 @@ requirements:
     - python
     - pip
     - packaging
-    - pkg-config  # [osx]
     - setuptools
     - wheel
+    - cython 0.29.32
+    - pkg-config  # [osx or (linux and aarch64)]
 
 outputs:
   - name: ray-all
@@ -73,11 +72,9 @@ outputs:
         - m2-patch       # [win]
         - bazel 5.4.1
         - curl
-        - cython 0.29.32
-        - git         # [win]
-        - m2-make     # [win]
-        - make        # [not win]
-        - pkg-config  # [osx or (linux and aarch64)]
+        - git            # [not win]
+        - m2-make        # [win]
+        - make           # [not win]
         - python  
         - sysroot_linux-64 2.17  # [linux and x86_64]
       host:
@@ -85,9 +82,10 @@ outputs:
         - openjdk 11
         - pip
         - packaging
-        - pkg-config  # [osx]
+        - pkg-config     # [osx or (linux and aarch64)]
         - setuptools
         - wheel
+        - cython 0.29.32
       run:
         - python
         - aiosignal
