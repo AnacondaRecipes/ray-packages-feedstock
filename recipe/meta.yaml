@@ -8,7 +8,6 @@ source:
   url: https://github.com/ray-project/ray/archive/ray-{{ version }}.tar.gz
   sha256: 8cb87bc70fdc00c8c028906280e27f5139d6c7ebcee30f88f92beccfde296338
   patches:
-    - patches/0003-Redis-deps-now-build-but-do-not-link.patch
     - patches/0004-Disable-making-non-core-entry-scripts.patch
     - patches/0010-Remove-all-dependencies-from-setup.py.patch
     - patches/0011-Ignore-warnings-in-event.cc-and-logging.cc.patch
