@@ -1,4 +1,4 @@
-{% set version = "2.3.0" %}
+{% set version = "2.6.3" %}
 
 package:
   name: ray-packages
@@ -6,7 +6,7 @@ package:
 
 source:
   url: https://github.com/ray-project/ray/archive/ray-{{ version }}.tar.gz
-  sha256: 0554b8711db70fae4c0acc8e01674901a84b81405f5247ed933b12ed047ff353
+  sha256: 8cb87bc70fdc00c8c028906280e27f5139d6c7ebcee30f88f92beccfde296338
   patches:
     - patches/0004-Disable-making-non-core-entry-scripts.patch
     - patches/0010-Remove-all-dependencies-from-setup.py.patch
@@ -14,6 +14,7 @@ source:
     - patches/0013-Add-bazel-linkopts-libs.patch
     # https://github.com/ray-project/ray/pull/34151
     - patches/0014-fix-namespaces.patch
+    # Build using a newer redis and skylib, to help with aarch64 issues.
     - patches/0015-use-newer-dependencies.patch
 
 build:
@@ -37,6 +38,7 @@ requirements:
     - patchelf    # [linux]
     - python  
     - sysroot_linux-64 2.17  # [linux and x86_64]
+    - pkg-config  # [osx or (linux and aarch64)]
   host:
     - python
     - pip
@@ -44,7 +46,6 @@ requirements:
     - setuptools
     - wheel
     - cython 0.29.32
-    - pkg-config  # [osx or (linux and aarch64)]
 
 outputs:
   - name: ray-all
@@ -77,12 +78,12 @@ outputs:
         - make           # [not win]
         - python  
         - sysroot_linux-64 2.17  # [linux and x86_64]
+        - pkg-config     # [osx or (linux and aarch64)]
       host:
         - python
         - openjdk 11
         - pip
         - packaging
-        - pkg-config     # [osx or (linux and aarch64)]
         - setuptools
         - wheel
         - cython 0.29.32
