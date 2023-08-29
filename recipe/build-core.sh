@@ -1,8 +1,8 @@
 #!/bin/bash
 set -xe
 
-bazel clean --expunge
-bazel shutdown
+# bazel clean --expunge
+# bazel shutdown
 
 if [[ "${target_platform}" == osx-* ]]; then
   export LDFLAGS="${LDFLAGS} -lz -framework CoreFoundation -Xlinker -undefined -Xlinker dynamic_lookup"
@@ -28,15 +28,15 @@ grep -lR ELF build/ | xargs chmod +w
 # now install the thing so conda could pick it up
 ${PYTHON} -m pip install . --no-deps --no-build-isolation
 
-# now clean everything up so subsequent builds (for potentially
-# different Python version) do not stumble on some after-effects
-"${PYTHON}" setup.py clean --all
-bazel "--output_user_root=$SRC_DIR/../bazel-root" "--output_base=$SRC_DIR/../b-o" clean --expunge
-bazel "--output_user_root=$SRC_DIR/../bazel-root" "--output_base=$SRC_DIR/../b-o" shutdown
-rm -rf "$SRC_DIR/../b-o" "$SRC_DIR/../bazel-root"
-# this is needed because on many build systems the cache is actually under /root.
-# but this may not always be true/allowed, hence the or operation.
-rm -rf /root/.cache/bazel || true
+# # now clean everything up so subsequent builds (for potentially
+# # different Python version) do not stumble on some after-effects
+# "${PYTHON}" setup.py clean --all
+# bazel "--output_user_root=$SRC_DIR/../bazel-root" "--output_base=$SRC_DIR/../b-o" clean --expunge
+# bazel "--output_user_root=$SRC_DIR/../bazel-root" "--output_base=$SRC_DIR/../b-o" shutdown
+# rm -rf "$SRC_DIR/../b-o" "$SRC_DIR/../bazel-root"
+# # this is needed because on many build systems the cache is actually under /root.
+# # but this may not always be true/allowed, hence the or operation.
+# rm -rf /root/.cache/bazel || true
 
 # Remove RUNPATH and set RPATH
 # if [[ "$target_platform" == "linux-"* ]]; then
