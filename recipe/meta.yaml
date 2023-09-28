@@ -30,7 +30,7 @@ requirements:
     - {{ compiler('cxx') }}
     - patch          # [not win]
     - m2-patch       # [win]
-    - bazel ==5.4.1
+    - bazel 5.4.1
     - curl
     - cython >=0.29.32
     - git
@@ -38,10 +38,11 @@ requirements:
     - make      # [not win]
     - pkg-config  # [osx or (linux and aarch64)]
     - patchelf  # [linux]
-    - python  
+    - python
     - sysroot_linux-64 2.17  # [linux and x86_64]
-    - setproctitle ==1.2.2
+    - setproctitle 1.2.2
     - zlib
+    - jemalloc 5.2.1
   host:
     - python
     - pip
@@ -87,9 +88,9 @@ outputs:
         - {{ compiler('cxx') }}
         - patch          # [not win]
         - m2-patch       # [win]
-        - bazel ==5.4.1
+        - bazel 5.4.1
         - curl
-        - cython ==0.29.32
+        - cython >=0.29.32
         - git
         - m2-make   # [win]
         - make      # [not win]
@@ -97,7 +98,8 @@ outputs:
         #- patchelf  # [linux]
         - python  
         - sysroot_linux-64 2.17  # [linux and x86_64]
-        - setproctitle ==1.2.2
+        - setproctitle 1.2.2
+        - jemalloc 5.2.1
       host:
         - python
         - openjdk =11
