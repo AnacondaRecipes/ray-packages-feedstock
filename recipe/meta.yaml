@@ -106,7 +106,7 @@ outputs:
         - pkg-config  # [osx]
         - setuptools
         - wheel
-        - zlib
+        #- zlib
       run:
         - python
         - aiosignal
@@ -135,6 +135,8 @@ outputs:
         - ray.runtime_context
         - ray._private.state
         - ray._private.worker
+      requires:
+        - setuptools
       commands:
         - python -c "import ray; ray.init(include_dashboard=False)"
         - ray --help
