@@ -135,6 +135,8 @@ outputs:
         - ray.runtime_context
         - ray._private.state
         - ray._private.worker
+      requires:
+        - setuptools
       commands:
         - python -c "import ray; ray.init(include_dashboard=False)"
 
@@ -191,6 +193,8 @@ outputs:
     test:
       imports:
         - ray.dashboard
+      requires:
+        - setuptools
       commands:
         - python -c "import ray; ray.init(include_dashboard=True)"
 
@@ -246,6 +250,8 @@ outputs:
     test:
       imports:
         - ray.rllib
+      requires:
+        - setuptools
       commands:
         # some interaction with rich and the test runner in azure
         # xref https://github.com/Textualize/rich/issues/2411 ?
