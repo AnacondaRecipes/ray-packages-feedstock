@@ -5,9 +5,9 @@ bazel clean --expunge
 bazel shutdown
 
 if [[ "${target_platform}" == osx-* ]]; then
-  export LDFLAGS="${LDFLAGS} -lz -framework CoreFoundation -Xlinker -undefined -Xlinker dynamic_lookup"
+    export LDFLAGS="${LDFLAGS} -lz -framework CoreFoundation -Xlinker -undefined -Xlinker dynamic_lookup"
 else
-  export LDFLAGS="${LDFLAGS} -lrt"
+    export LDFLAGS="${LDFLAGS} -lrt"
 fi
 
 # For some weird reason, ar is not picked up on linux-aarch64
@@ -26,7 +26,7 @@ export SKIP_THIRDPARTY_INSTALL=1
 grep -lR ELF build/ | xargs chmod +w
 
 # now install the thing so conda could pick it up
-${PYTHON} -m pip install . --no-deps --no-build-isolation
+${PYTHON} -m pip install . --no-deps --no-build-isolation -vv
 
 # now clean everything up so subsequent builds (for potentially
 # different Python version) do not stumble on some after-effects
