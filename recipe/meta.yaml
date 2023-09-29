@@ -46,7 +46,6 @@ requirements:
   host:
     - python
     - pip
-    - packaging
     - pkg-config  # [osx]
     - setuptools
     - wheel
@@ -103,7 +102,6 @@ outputs:
         - python
         - openjdk =11
         - pip
-        - packaging
         - pkg-config  # [osx]
         - setuptools
         - wheel
@@ -127,6 +125,10 @@ outputs:
         - requests
         - setproctitle =1.2.2
         - virtualenv >=20.0.24
+        # Needed because ray imports pkg_resources in multiple places.
+        # Upstream deosn't declare it... Please remove as soon as it's not required
+        # anymore (for example in the latest ray package).
+        - setuptools
 
     test:
       imports:
@@ -266,9 +268,6 @@ outputs:
     test:
       imports:
         - ray.data
-      requires:
-        # For pkg_resources
-        - setuptools
 
   - name: ray-serve
     build:
