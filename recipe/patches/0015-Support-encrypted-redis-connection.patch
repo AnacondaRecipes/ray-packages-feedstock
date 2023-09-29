@@ -1,0 +1,608 @@
+From e71d0d680c730336f133f1d4596d5d22880c4951 Mon Sep 17 00:00:00 2001
+From: SangBin Cho <rkooo567@gmail.com>
+Date: Mon, 3 Oct 2022 00:32:24 -0700
+Subject: [PATCH] Revert "[core] Support encrypted redis connection. (#28628)"
+
+This reverts commit 7167f9cf53eec26db9efc1a39e1914dd4cc5514c.
+---
+ bazel/BUILD.hiredis                  |  7 +--
+ bazel/BUILD.redis                    | 91 +++++++++++++++-------------
+ bazel/ray_deps_build_all.bzl         |  5 --
+ bazel/ray_deps_setup.bzl             | 31 ----------
+ python/ray/_private/services.py      | 29 +--------
+ python/ray/includes/ray_config.pxd   | 12 ----
+ python/ray/includes/ray_config.pxi   | 24 --------
+ python/ray/tests/BUILD               |  1 -
+ python/ray/tests/test_redis_tls.py   | 62 -------------------
+ src/ray/common/ray_config_def.h      | 10 ---
+ src/ray/gcs/redis_context.cc         | 56 -----------------
+ src/ray/gcs/redis_context.h          |  5 +-
+ thirdparty/patches/redis-quiet.patch | 23 +++----
+ 13 files changed, 62 insertions(+), 294 deletions(-)
+ delete mode 100644 python/ray/tests/test_redis_tls.py
+
+diff --git a/bazel/BUILD.hiredis b/bazel/BUILD.hiredis
+index 1afd7a96c031..aaf82e71f8fb 100644
+--- a/bazel/BUILD.hiredis
++++ b/bazel/BUILD.hiredis
+@@ -1,8 +1,6 @@
+-COPTS = ["-DUSE_SSL=1"] + select({
++COPTS = [] + select({
+     "@bazel_tools//src/conditions:windows": [
+         "-D_CRT_DECLARE_NONSTDC_NAMES=0",  # don't define off_t, to avoid conflicts
+-        "-DWIN32",
+-        "-DWIN32_LEAN_AND_MEAN"
+     ],
+     "//conditions:default": [
+     ],
+@@ -34,6 +32,7 @@ cc_library(
+         ],
+         exclude =
+         [
++            "ssl.c",
+             "test.c",
+         ],
+     ),
+@@ -45,8 +44,6 @@ cc_library(
+     include_prefix = "hiredis",
+     deps = [
+         ":_hiredis",
+-        "@boringssl//:ssl",
+-        "@boringssl//:crypto"
+     ],
+     visibility = ["//visibility:public"],
+ )
+diff --git a/bazel/BUILD.redis b/bazel/BUILD.redis
+index 24ee3dea7635..f488d607f192 100644
+--- a/bazel/BUILD.redis
++++ b/bazel/BUILD.redis
+@@ -1,5 +1,3 @@
+-load("@rules_foreign_cc//foreign_cc:defs.bzl", "make")
+-
+ exports_files(
+     [
+         "redis-server.exe",
+@@ -8,53 +6,62 @@ exports_files(
+     visibility = ["//visibility:public"],
+ )
+ 
+-filegroup(
+-    name = "all_srcs",
+-    srcs = glob(
+-        include = ["**"],
+-        exclude = ["*.bazel"],
+-    ),
+-)
+-    
+-
+-make(
+-    name = "redis",
+-    args = [
+-        "BUILD_TLS=yes",
+-        "-s",
+-    ],
+-    copts = [
+-        "-DLUA_USE_MKSTEMP",
+-        "-Wno-pragmas",
+-        "-Wno-empty-body",
+-        "-fPIC",
+-    ],
+-    visibility = ["//visibility:public"],
+-    lib_source = ":all_srcs",
+-    deps = [
+-        "@openssl//:openssl",
+-    ],
+-    out_binaries = [
+-        "redis-server",
+-        "redis-cli"
+-    ]
+-)
+-
+ genrule(
+     name = "bin",
+-    srcs = [":redis"],
++    srcs = glob(["**"]),
+     outs = [
+         "redis-server",
+         "redis-cli",
+     ],
+     cmd = """
+-    mkdir tmp-redis-bin
+-    cp $(locations :redis) ./tmp-redis-bin/ -rf
+-    cp tmp-redis-bin/redis-server $(location redis-server)
+-    chmod +x $(location redis-server)
+-    cp tmp-redis-bin/redis-cli $(location redis-cli)
+-    chmod +x $(location redis-cli)
+-    rm -rf tmp-redis-bin
++        unset CC LDFLAGS CXX CXXFLAGS
++        tmpdir="redis.tmp"
++        p=$(location Makefile)
++        cp -p -L -R -- "$${p%/*}" "$${tmpdir}"
++        chmod +x "$${tmpdir}"/deps/jemalloc/configure
++        parallel="$$(getconf _NPROCESSORS_ONLN || echo 1)"
++        make -s -C "$${tmpdir}" -j"$${parallel}" V=0 CFLAGS="$${CFLAGS-} -DLUA_USE_MKSTEMP -Wno-pragmas -Wno-empty-body"
++        mv "$${tmpdir}"/src/redis-server $(location redis-server)
++        chmod +x $(location redis-server)
++        mv "$${tmpdir}"/src/redis-cli $(location redis-cli)
++        chmod +x $(location redis-cli)
++        rm -r -f -- "$${tmpdir}"
+     """,
+     visibility = ["//visibility:public"],
++    tags = ["local"],
++)
++
++# This library is for internal hiredis use, because hiredis assumes a
++# different include prefix for itself than external libraries do.
++cc_library(
++    name = "_hiredis",
++    hdrs = [
++        "deps/hiredis/dict.c",
++        "deps/hiredis/dict.h",
++        "deps/hiredis/fmacros.h",
++    ],
++    strip_include_prefix = "deps/hiredis",
++)
++
++cc_library(
++    name = "hiredis",
++    srcs = glob(
++        [
++            "deps/hiredis/*.c",
++            "deps/hiredis/*.h",
++        ],
++        exclude =
++        [
++            "deps/hiredis/test.c",
++        ],
++    ),
++    hdrs = glob([
++        "deps/hiredis/*.h",
++        "deps/hiredis/adapters/*.h",
++    ]),
++    strip_include_prefix = "deps",
++    deps = [
++        ":_hiredis",
++    ],
++    visibility = ["//visibility:public"],
+ )
+diff --git a/bazel/ray_deps_build_all.bzl b/bazel/ray_deps_build_all.bzl
+index a8597dd1840f..56b2cbebaac1 100644
+--- a/bazel/ray_deps_build_all.bzl
++++ b/bazel/ray_deps_build_all.bzl
+@@ -6,9 +6,6 @@ load("@com_github_grpc_grpc//third_party/py:python_configure.bzl", "python_confi
+ load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
+ load("@rules_proto_grpc//:repositories.bzl", "rules_proto_grpc_toolchains")
+ load("@com_github_johnynek_bazel_jar_jar//:jar_jar.bzl", "jar_jar_repositories")
+-load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
+-load("@rules_foreign_cc_thirdparty//openssl:openssl_setup.bzl", "openssl_setup")
+-
+ 
+ 
+ def ray_deps_build_all():
+@@ -20,5 +17,3 @@ def ray_deps_build_all():
+   grpc_deps()
+   rules_proto_grpc_toolchains()
+   jar_jar_repositories()
+-  rules_foreign_cc_dependencies()
+-  openssl_setup()
+diff --git a/bazel/ray_deps_setup.bzl b/bazel/ray_deps_setup.bzl
+index 82b1a4caa17a..b5c1beb54765 100644
+--- a/bazel/ray_deps_setup.bzl
++++ b/bazel/ray_deps_setup.bzl
+@@ -98,7 +98,6 @@ def ray_deps_setup():
+     auto_http_archive(
+         name = "com_github_antirez_redis",
+         build_file = "@com_github_ray_project_ray//bazel:BUILD.redis",
+-        patch_args = ["-p1"],
+         url = "https://github.com/redis/redis/archive/refs/tags/7.0.5.tar.gz",
+         sha256 = "40827fcaf188456ad9b3be8e27a4f403c43672b6bb6201192dc15756af6f1eae",
+         patches = [
+@@ -244,36 +243,6 @@ def ray_deps_setup():
+             "@com_github_ray_project_ray//thirdparty/patches:grpc-python.patch",
+         ],
+     )
+-    
+-    http_archive(
+-        name = "openssl",
+-        strip_prefix = "openssl-1.1.1f",
+-        sha256 = "186c6bfe6ecfba7a5b48c47f8a1673d0f3b0e5ba2e25602dd23b629975da3f35",
+-        urls = [
+-            "https://www.openssl.org/source/openssl-1.1.1f.tar.gz",
+-        ],
+-        build_file = "@rules_foreign_cc_thirdparty//openssl:BUILD.openssl.bazel",
+-    )
+-    
+-    http_archive(
+-        name = "rules_foreign_cc",
+-        sha256 = "2a4d07cd64b0719b39a7c12218a3e507672b82a97b98c6a89d38565894cf7c51",
+-        strip_prefix = "rules_foreign_cc-0.9.0",
+-        url = "https://github.com/bazelbuild/rules_foreign_cc/archive/refs/tags/0.9.0.tar.gz",
+-    )
+-
+-    git_repository(
+-        name = "rules_perl",
+-        remote = "https://github.com/bazelbuild/rules_perl.git",
+-        commit = "022b8daf2bb4836ac7a50e4a1d8ea056a3e1e403",
+-    )
+-
+-    http_archive(
+-        name = "rules_foreign_cc_thirdparty",
+-        sha256 = "2a4d07cd64b0719b39a7c12218a3e507672b82a97b98c6a89d38565894cf7c51",
+-        strip_prefix = "rules_foreign_cc-0.9.0/examples/third_party",
+-        url = "https://github.com/bazelbuild/rules_foreign_cc/archive/refs/tags/0.9.0.tar.gz",
+-    )
+ 
+     http_archive(
+         # This rule is used by @com_github_grpc_grpc, and using a GitHub mirror
+diff --git a/python/ray/_private/services.py b/python/ray/_private/services.py
+index cacc701b4e35..af6ac2938d19 100644
+--- a/python/ray/_private/services.py
++++ b/python/ray/_private/services.py
+@@ -25,7 +25,7 @@
+ import ray
+ import ray._private.ray_constants as ray_constants
+ from ray._private.gcs_utils import GcsClient
+-from ray._raylet import GcsClientOptions, Config
++from ray._raylet import GcsClientOptions
+ from ray.core.generated.common_pb2 import Language
+ 
+ resource = None
+@@ -1107,36 +1107,11 @@ def _start_redis_instance(
+         if " " in password:
+             raise ValueError("Spaces not permitted in redis password.")
+         command += ["--requirepass", password]
+-
+-    if not Config.REDIS_ENABLE_SSL():
+-        command += ["--port", str(port), "--loglevel", "warning"]
+-    else:
+-        import socket
+-
+-        with socket.socket() as s:
+-            s.bind(("", 0))
+-            free_port = s.getsockname()[1]
+-        command += [
+-            "--tls-port",
+-            str(port),
+-            "--loglevel",
+-            "warning",
+-            "--port",
+-            str(free_port),
+-        ]
+-
++    command += ["--port", str(port), "--loglevel", "warning"]
+     if listen_to_localhost_only:
+         command += ["--bind", "127.0.0.1"]
+     pidfile = os.path.join(session_dir_path, "redis-" + uuid.uuid4().hex + ".pid")
+     command += ["--pidfile", pidfile]
+-    if Config.REDIS_ENABLE_SSL():
+-        if Config.REDIS_CA_CERT():
+-            command += ["--tls-ca-cert-file", Config.REDIS_CA_CERT()]
+-        if Config.REDIS_CLIENT_CERT():
+-            command += ["--tls-cert-file", Config.REDIS_CLIENT_CERT()]
+-        if Config.REDIS_CLIENT_KEY():
+-            command += ["--tls-key-file", Config.REDIS_CLIENT_KEY()]
+-        command += ["--tls-replication", "yes"]
+     if sys.platform != "win32":
+         command += ["--save", "", "--appendonly", "no"]
+     process_info = start_ray_process(
+diff --git a/python/ray/includes/ray_config.pxd b/python/ray/includes/ray_config.pxd
+index 1c4ad97bd40d..aea7ced64a26 100644
+--- a/python/ray/includes/ray_config.pxd
++++ b/python/ray/includes/ray_config.pxd
+@@ -70,15 +70,3 @@ cdef extern from "ray/common/ray_config.h" nogil:
+         c_bool start_python_importer_thread() const
+ 
+         c_bool use_ray_syncer() const
+-
+-        c_bool REDIS_ENABLE_SSL() const
+-
+-        c_string REDIS_CA_CERT() const
+-
+-        c_string REDIS_CA_PATH() const
+-
+-        c_string REDIS_CLIENT_CERT() const
+-
+-        c_string REDIS_CLIENT_KEY() const
+-
+-        c_string REDIS_SERVER_NAME() const
+diff --git a/python/ray/includes/ray_config.pxi b/python/ray/includes/ray_config.pxi
+index 8bd9a2db1bcf..803ca9bd19b5 100644
+--- a/python/ray/includes/ray_config.pxi
++++ b/python/ray/includes/ray_config.pxi
+@@ -116,27 +116,3 @@ cdef class Config:
+     @staticmethod
+     def use_ray_syncer():
+         return RayConfig.instance().use_ray_syncer()
+-
+-    @staticmethod
+-    def REDIS_ENABLE_SSL():
+-        return RayConfig.instance().REDIS_ENABLE_SSL()
+-
+-    @staticmethod
+-    def REDIS_CA_CERT():
+-        return RayConfig.instance().REDIS_CA_CERT()
+-
+-    @staticmethod
+-    def REDIS_CA_PATH():
+-        return RayConfig.instance().REDIS_CA_PATH()
+-
+-    @staticmethod
+-    def REDIS_CLIENT_CERT():
+-        return RayConfig.instance().REDIS_CLIENT_CERT()
+-
+-    @staticmethod
+-    def REDIS_CLIENT_KEY():
+-        return RayConfig.instance().REDIS_CLIENT_KEY()
+-
+-    @staticmethod
+-    def REDIS_SERVER_NAME():
+-        return RayConfig.instance().REDIS_SERVER_NAME()
+diff --git a/python/ray/tests/BUILD b/python/ray/tests/BUILD
+index 550df5cbf8b5..55a29d7336de 100644
+--- a/python/ray/tests/BUILD
++++ b/python/ray/tests/BUILD
+@@ -185,7 +185,6 @@ py_test_module_list(
+     "test_raylet_output.py",
+     "test_scheduling_performance.py",
+     "test_get_or_create_actor.py",
+-    "test_redis_tls.py",
+   ],
+   size = "small",
+   tags = ["exclusive", "small_size_python_tests", "team:core"],
+diff --git a/python/ray/tests/test_redis_tls.py b/python/ray/tests/test_redis_tls.py
+deleted file mode 100644
+index caa78833d937..000000000000
+--- a/python/ray/tests/test_redis_tls.py
++++ /dev/null
+@@ -1,62 +0,0 @@
+-import pytest
+-import subprocess
+-import sys
+-import ray
+-from ray._private.test_utils import enable_external_redis
+-
+-
+-@pytest.fixture
+-def setup_tls(tmp_path, monkeypatch):
+-    shell_scripts = f"""
+-mkdir -p {str(tmp_path)}/tls
+-openssl genrsa -out {str(tmp_path)}/tls/ca.key 4096
+-openssl req \
+-    -x509 -new -nodes -sha256 \
+-    -key {str(tmp_path)}/tls/ca.key \
+-    -days 3650 \
+-    -subj '/O=Redis Test/CN=Certificate Authority' \
+-    -out {str(tmp_path)}/tls/ca.crt
+-openssl genrsa -out {str(tmp_path)}/tls/redis.key 2048
+-openssl req \
+-    -new -sha256 \
+-    -key {str(tmp_path)}/tls/redis.key \
+-    -subj '/O=Redis Test/CN=Server' | \
+-    openssl x509 \
+-        -req -sha256 \
+-        -CA {str(tmp_path)}/tls/ca.crt \
+-        -CAkey {str(tmp_path)}/tls/ca.key \
+-        -CAserial {str(tmp_path)}/tls/ca.txt \
+-        -CAcreateserial \
+-        -days 365 \
+-        -out {str(tmp_path)}/tls/redis.crt
+-openssl dhparam -out {str(tmp_path)}/tls/redis.dh 2048
+-"""
+-    (tmp_path / "gen-test-certs.sh").write_text(shell_scripts)
+-
+-    print(subprocess.check_output(["bash", f"{tmp_path}/gen-test-certs.sh"]))
+-    """
+-    ls {tmp_path}/tls/
+-    ca.crt  ca.key  ca.txt  redis.crt  redis.dh  redis.key
+-    """
+-
+-    monkeypatch.setenv("RAY_REDIS_ENABLE_SSL", "true")
+-    monkeypatch.setenv("RAY_REDIS_CA_CERT", f"{str(tmp_path)}/tls/ca.crt")
+-
+-    monkeypatch.setenv("RAY_REDIS_CLIENT_CERT", f"{str(tmp_path)}/tls/redis.crt")
+-    monkeypatch.setenv("RAY_REDIS_CLIENT_KEY", f"{str(tmp_path)}/tls/redis.key")
+-    ray._raylet.Config.initialize("")
+-    yield tmp_path
+-
+-
+-@pytest.mark.skipif(not enable_external_redis(), reason="Only work for redis mode")
+-@pytest.mark.skipif(sys.platform != "linux", reason="Only work in linux")
+-def test_redis_tls(setup_tls, ray_start_cluster_head):
+-    @ray.remote
+-    def hello():
+-        return "world"
+-
+-    assert ray.get(hello.remote()) == "world"
+-
+-
+-if __name__ == "__main__":
+-    sys.exit(pytest.main(["-sv", __file__]))
+diff --git a/src/ray/common/ray_config_def.h b/src/ray/common/ray_config_def.h
+index c246317f2b6d..e995ea601e08 100644
+--- a/src/ray/common/ray_config_def.h
++++ b/src/ray/common/ray_config_def.h
+@@ -669,16 +669,6 @@ RAY_CONFIG(std::string, TLS_SERVER_CERT, "")
+ RAY_CONFIG(std::string, TLS_SERVER_KEY, "")
+ RAY_CONFIG(std::string, TLS_CA_CERT, "")
+ 
+-/// Location of Redis TLS credentials
+-/// https://github.com/redis/hiredis/blob/c78d0926bf169670d15cfc1214e4f5d21673396b/README.md#hiredis-openssl-wrappers
+-RAY_CONFIG(bool, REDIS_ENABLE_SSL, false)
+-RAY_CONFIG(std::string, REDIS_CA_CERT, "")
+-RAY_CONFIG(std::string, REDIS_CA_PATH, "")
+-
+-RAY_CONFIG(std::string, REDIS_CLIENT_CERT, "")
+-RAY_CONFIG(std::string, REDIS_CLIENT_KEY, "")
+-RAY_CONFIG(std::string, REDIS_SERVER_NAME, "")
+-
+ /// grpc delay testing flags
+ ///  To use this, simply do
+ ///      export RAY_testing_asio_delay_us="method1=min_val:max_val,method2=20:100"
+diff --git a/src/ray/gcs/redis_context.cc b/src/ray/gcs/redis_context.cc
+index 6e075f936cd3..b3b2f009cf81 100644
+--- a/src/ray/gcs/redis_context.cc
++++ b/src/ray/gcs/redis_context.cc
+@@ -22,7 +22,6 @@
+ extern "C" {
+ #include "hiredis/async.h"
+ #include "hiredis/hiredis.h"
+-#include "hiredis/hiredis_ssl.h"
+ }
+ 
+ // TODO(pcm): Integrate into the C++ tree.
+@@ -256,55 +255,9 @@ void RedisCallbackManager::RemoveCallback(int64_t callback_index) {
+     return Status::RedisError(CONTEXT->errstr);               \
+   }
+ 
+-RedisContext::RedisContext(instrumented_io_context &io_service)
+-    : io_service_(io_service), context_(nullptr), ssl_context_(nullptr) {
+-  if (::RayConfig::instance().REDIS_ENABLE_SSL()) {
+-    redisSSLContextError ssl_error;
+-    redisInitOpenSSL();
+-
+-    const char *cacert = nullptr;
+-    if (!::RayConfig::instance().REDIS_CA_CERT().empty()) {
+-      cacert = ::RayConfig::instance().REDIS_CA_CERT().c_str();
+-    }
+-
+-    const char *capath = nullptr;
+-    if (!::RayConfig::instance().REDIS_CA_PATH().empty()) {
+-      capath = ::RayConfig::instance().REDIS_CA_PATH().c_str();
+-    }
+-
+-    const char *client_cert = nullptr;
+-    if (!::RayConfig::instance().REDIS_CLIENT_CERT().empty()) {
+-      client_cert = ::RayConfig::instance().REDIS_CLIENT_CERT().c_str();
+-    }
+-
+-    const char *client_key = nullptr;
+-    if (!::RayConfig::instance().REDIS_CLIENT_KEY().empty()) {
+-      client_key = ::RayConfig::instance().REDIS_CLIENT_KEY().c_str();
+-    }
+-
+-    const char *server_name = nullptr;
+-    if (!::RayConfig::instance().REDIS_SERVER_NAME().empty()) {
+-      server_name = ::RayConfig::instance().REDIS_SERVER_NAME().c_str();
+-    }
+-
+-    ssl_error = REDIS_SSL_CTX_NONE;
+-    ssl_context_ = redisCreateSSLContext(
+-        cacert, capath, client_cert, client_key, server_name, &ssl_error);
+-
+-    RAY_CHECK(ssl_context_ != nullptr && ssl_error == REDIS_SSL_CTX_NONE)
+-        << "Failed to construct a ssl context for redis client: "
+-        << redisSSLContextGetError(ssl_error);
+-  }
+-}
+-
+ RedisContext::~RedisContext() {
+   if (context_) {
+     redisFree(context_);
+-    context_ = nullptr;
+-  }
+-  if (ssl_context_) {
+-    redisFreeSSLContext(ssl_context_);
+-    ssl_context_ = nullptr;
+   }
+ }
+ 
+@@ -424,11 +377,6 @@ Status RedisContext::Connect(const std::string &address,
+   RAY_CHECK(!async_redis_subscribe_context_);
+ 
+   RAY_CHECK_OK(ConnectWithRetries(address, port, redisConnect, &context_));
+-  if (ssl_context_ != nullptr) {
+-    RAY_CHECK(redisInitiateSSLWithContext(context_, ssl_context_) == REDIS_OK)
+-        << "Failed to setup encrypted redis: " << context_->errstr;
+-  }
+-
+   RAY_CHECK_OK(AuthenticateRedis(context_, password));
+ 
+   redisReply *reply = reinterpret_cast<redisReply *>(
+@@ -439,10 +387,6 @@ Status RedisContext::Connect(const std::string &address,
+   // Connect to async context
+   redisAsyncContext *async_context = nullptr;
+   RAY_CHECK_OK(ConnectWithRetries(address, port, redisAsyncConnect, &async_context));
+-  if (ssl_context_ != nullptr) {
+-    RAY_CHECK(redisInitiateSSLWithContext(&async_context->c, ssl_context_) == REDIS_OK)
+-        << "Failed to setup encrypted redis: " << context_->errstr;
+-  }
+   RAY_CHECK_OK(AuthenticateRedis(async_context, password));
+   redis_async_context_.reset(new RedisAsyncContext(async_context));
+   SetDisconnectCallback(redis_async_context_.get());
+diff --git a/src/ray/gcs/redis_context.h b/src/ray/gcs/redis_context.h
+index fa642116fba0..11158e33f4a0 100644
+--- a/src/ray/gcs/redis_context.h
++++ b/src/ray/gcs/redis_context.h
+@@ -30,7 +30,6 @@
+ 
+ struct redisContext;
+ struct redisAsyncContext;
+-struct redisSSLContext;
+ 
+ namespace ray {
+ 
+@@ -172,7 +171,8 @@ class RedisCallbackManager {
+ 
+ class RedisContext {
+  public:
+-  RedisContext(instrumented_io_context &io_service);
++  RedisContext(instrumented_io_context &io_service)
++      : io_service_(io_service), context_(nullptr) {}
+ 
+   ~RedisContext();
+ 
+@@ -284,7 +284,6 @@ class RedisContext {
+ 
+   instrumented_io_context &io_service_;
+   redisContext *context_;
+-  redisSSLContext *ssl_context_;
+   std::unique_ptr<RedisAsyncContext> redis_async_context_;
+   std::unique_ptr<RedisAsyncContext> async_redis_subscribe_context_;
+ };
+diff --git a/thirdparty/patches/redis-quiet.patch b/thirdparty/patches/redis-quiet.patch
+index d0343875969d..90ade463e4be 100644
+--- a/thirdparty/patches/redis-quiet.patch
++++ b/thirdparty/patches/redis-quiet.patch
+@@ -1,7 +1,7 @@
+ diff --git a/deps/Makefile b/deps/Makefile
+ index 8592e17..0c13eea 100644
+---- a/deps/Makefile
+-+++ b/deps/Makefile
++--- deps/Makefile
+++++ deps/Makefile
+ @@ -49,19 +49,19 @@ ifeq ($(BUILD_TLS),yes)
+  endif
+  
+@@ -45,8 +45,8 @@ index 8592e17..0c13eea 100644
+  
+ diff --git a/deps/jemalloc/Makefile.in b/deps/jemalloc/Makefile.in
+ index 7128b00..da8e429 100644
+---- a/deps/jemalloc/Makefile.in
+-+++ b/deps/jemalloc/Makefile.in
++--- deps/jemalloc/Makefile.in
+++++ deps/jemalloc/Makefile.in
+ @@ -406,7 +406,7 @@ $(objroot)include/jemalloc/internal/private_namespace_jet.gen.h: $(C_JET_SYMS)
+  	$(SHELL) $(srcroot)include/jemalloc/internal/private_namespace.sh $^ > $@
+  
+@@ -57,18 +57,9 @@ index 7128b00..da8e429 100644
+  $(CPP_OBJS) $(CPP_PIC_OBJS) $(TESTS_CPP_OBJS): %.$(O):
+  	@mkdir -p $(@D)
+ diff --git a/src/Makefile b/src/Makefile
+-index e4f7d90..704d4b4 100644
+---- a/src/Makefile
+-+++ b/src/Makefile
+-@@ -115,7 +115,7 @@ endif
+- # Override default settings if possible
+- -include .make-settings
+- 
+--FINAL_CFLAGS=$(STD) $(WARN) $(OPT) $(DEBUG) $(CFLAGS) $(REDIS_CFLAGS)
+-+FINAL_CFLAGS=$(STD) $(WARN) $(OPT) $(DEBUG) $(CFLAGS) $(REDIS_CFLAGS) $(CPPFLAGS)
+- FINAL_LDFLAGS=$(LDFLAGS) $(REDIS_LDFLAGS) $(DEBUG)
+- FINAL_LIBS=-lm
+- DEBUG=-g -ggdb
++index e4f7d90..218543f 100644
++--- src/Makefile
+++++ src/Makefile
+ @@ -326,9 +326,9 @@ REDIS_CHECK_AOF_NAME=redis-check-aof$(PROG_SUFFIX)
+  ALL_SOURCES=$(sort $(patsubst %.o,%.c,$(REDIS_SERVER_OBJ) $(REDIS_CLI_OBJ) $(REDIS_BENCHMARK_OBJ)))
+  

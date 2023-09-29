@@ -15,6 +15,7 @@ source:
     - patches/0013-Add-bazel-linkopts-libs.patch
     # https://github.com/ray-project/ray/pull/34151
     - patches/0014-fix-namespaces.patch
+    - patches/0015-Support-encrypted-redis-connection.patch  # [linux-aarch64]
 
 build:
   number: 2
