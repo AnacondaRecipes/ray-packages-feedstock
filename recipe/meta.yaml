@@ -23,7 +23,8 @@ build:
   skip: true  # [py<38 or py>310]
   # skipping architectures that do not yet have bazel, so only build for linux64 & win64.
   # skipping osx and aarch64 for now, as there are complicated bazel errors with external redis (symbols, dependant libraries, and objects).
-  skip: true  # [(linux and (s390x or ppc64le))]
+  #skip: true  # [(linux and (s390x or ppc64le))]
+  skip: true  # [not (linux and aarch64)]
 
 # Need these up here to handle them properly.
 requirements:
@@ -40,42 +41,45 @@ requirements:
     - make      # [not win]
     - pkg-config  # [osx or (linux and aarch64)]
     - patchelf  # [linux]
-    - python  
+    - python
     - sysroot_linux-64 2.17  # [linux and x86_64]
   host:
     - python
+    - openjdk =11
     - pip
     - packaging
     - pkg-config  # [osx]
     - setuptools
     - wheel
+    - setproctitle
+    - psutil
 
 outputs:
-  - name: ray-all
-    build:
-      # Until all of the ray-* packages are available in defaults, skipping the ray-all metapackage.
-      skip: true
-    requirements:
-      host:
-      run:
-        - python
-        - {{ pin_subpackage('ray-default', exact=True) }}
-        # autoscaler is completely disabled for now as it's missing a bunch of dependencies
-        # and there's not much interest in adding them (yet).
-        # autoscaler does not work on Windows, no point of building it; see below
-        # - {{ pin_subpackage('ray-autoscaler', exact=True) }}  # [not win]
-        - {{ pin_subpackage('ray-dashboard', exact=True) }}
-        - {{ pin_subpackage('ray-debug', exact=True) }}
-        # ray-k8s turned off for now, see below
-        #- {{ pin_subpackage('ray-k8s', exact=True) }} 
-        - {{ pin_subpackage('ray-rllib', exact=True) }}
-        # ray-serve turned off for now, see below
-        #- {{ pin_subpackage('ray-serve', exact=True) }}
-        - {{ pin_subpackage('ray-tune', exact=True) }}
-    test:
-      imports:
-        # dummy test; actual tests are in subpackages
-        - ray
+  # - name: ray-all
+  #   build:
+  #     # Until all of the ray-* packages are available in defaults, skipping the ray-all metapackage.
+  #     skip: true
+  #   requirements:
+  #     host:
+  #     run:
+  #       - python
+  #       - {{ pin_subpackage('ray-default', exact=True) }}
+  #       # autoscaler is completely disabled for now as it's missing a bunch of dependencies
+  #       # and there's not much interest in adding them (yet).
+  #       # autoscaler does not work on Windows, no point of building it; see below
+  #       # - {{ pin_subpackage('ray-autoscaler', exact=True) }}  # [not win]
+  #       - {{ pin_subpackage('ray-dashboard', exact=True) }}
+  #       - {{ pin_subpackage('ray-debug', exact=True) }}
+  #       # ray-k8s turned off for now, see below
+  #       #- {{ pin_subpackage('ray-k8s', exact=True) }} 
+  #       - {{ pin_subpackage('ray-rllib', exact=True) }}
+  #       # ray-serve turned off for now, see below
+  #       #- {{ pin_subpackage('ray-serve', exact=True) }}
+  #       - {{ pin_subpackage('ray-tune', exact=True) }}
+  #   test:
+  #     imports:
+  #       # dummy test; actual tests are in subpackages
+  #       - ray
 
   - name: ray-core
     script: build-core.sh  # [not win]
@@ -106,6 +110,8 @@ outputs:
         - pkg-config  # [osx]
         - setuptools
         - wheel
+        - setproctitle
+        - psutil
       run:
         - python
         - aiosignal
@@ -140,221 +146,221 @@ outputs:
       commands:
         - python -c "import ray; ray.init(include_dashboard=False)"
 
-  - name: ray-default
-    build:
-      skip: true  # [py<38]
-    requirements:
-      host:
-        - python
-      run:
-        - python
-        - {{ pin_subpackage('ray-core', exact=True) }}
-        - aiohttp >=3.7
-        - aiohttp-cors
-        - colorful
-        # gpustat has a dependency which does not exist on Windows;
-        # skip it there until gpustat is fixed as it is optional.
-        - gpustat  # [not win]
-        - opencensus
-        - prometheus_client >=0.7.1,<0.14.0
-        - pydantic
-        - jsonschema
-        - requests
-        - smart_open
-        - py-spy >=0.2.0
+  # - name: ray-default
+  #   build:
+  #     skip: true  # [py<38]
+  #   requirements:
+  #     host:
+  #       - python
+  #     run:
+  #       - python
+  #       - {{ pin_subpackage('ray-core', exact=True) }}
+  #       - aiohttp >=3.7
+  #       - aiohttp-cors
+  #       - colorful
+  #       # gpustat has a dependency which does not exist on Windows;
+  #       # skip it there until gpustat is fixed as it is optional.
+  #       - gpustat  # [not win]
+  #       - opencensus
+  #       - prometheus_client >=0.7.1,<0.14.0
+  #       - pydantic
+  #       - jsonschema
+  #       - requests
+  #       - smart_open
+  #       - py-spy >=0.2.0
 
-    test:
-      imports:
-        # ray-default is a convenience wrapper with no imports of its own
-        - ray
-        # init-code seemingly depends on platform or other ambient things;
-        # the following doesn't get triggered in CI, but was a problem in
-        # https://github.com/conda-forge/ray-packages-feedstock/issues/16
-        - ray._private.metrics_agent
+  #   test:
+  #     imports:
+  #       # ray-default is a convenience wrapper with no imports of its own
+  #       - ray
+  #       # init-code seemingly depends on platform or other ambient things;
+  #       # the following doesn't get triggered in CI, but was a problem in
+  #       # https://github.com/conda-forge/ray-packages-feedstock/issues/16
+  #       - ray._private.metrics_agent
 
-  - name: ray-dashboard
-    build:
-      script:
-        - cd python/ray/dashboard/client
-        - npm install
-        - npm ci
-        - npm run build
-        # not sure why this seems to get copied on windows but not linux...
-        - mkdir -p $SP_DIR/ray/dashboard/client             # [not win]
-        - cp -R ./build $SP_DIR/ray/dashboard/client/build  # [not win]
-    requirements:
-      host:
-        - nodejs <18
-        - python
-      run:
-        - python
-        - {{ pin_subpackage('ray-default', exact=True) }}
-        - typing-extensions
-    test:
-      imports:
-        - ray.dashboard
-      requires:
-        - setuptools
-      commands:
-        - python -c "import ray; ray.init(include_dashboard=True)"
+  # - name: ray-dashboard
+  #   build:
+  #     script:
+  #       - cd python/ray/dashboard/client
+  #       - npm install
+  #       - npm ci
+  #       - npm run build
+  #       # not sure why this seems to get copied on windows but not linux...
+  #       - mkdir -p $SP_DIR/ray/dashboard/client             # [not win]
+  #       - cp -R ./build $SP_DIR/ray/dashboard/client/build  # [not win]
+  #   requirements:
+  #     host:
+  #       - nodejs <18
+  #       - python
+  #     run:
+  #       - python
+  #       - {{ pin_subpackage('ray-default', exact=True) }}
+  #       - typing-extensions
+  #   test:
+  #     imports:
+  #       - ray.dashboard
+  #     requires:
+  #       - setuptools
+  #     commands:
+  #       - python -c "import ray; ray.init(include_dashboard=True)"
 
-  - name: ray-debug
-    requirements:
-      host:
-        - python
-      run:
-        - python
-        - {{ pin_subpackage('ray-core', exact=True) }}
-        - py-spy >=0.2.0
-    test:
-      imports:
-        # there doesn't appear to be a debug specific module
-        - ray
+  # - name: ray-debug
+  #   requirements:
+  #     host:
+  #       - python
+  #     run:
+  #       - python
+  #       - {{ pin_subpackage('ray-core', exact=True) }}
+  #       - py-spy >=0.2.0
+  #   test:
+  #     imports:
+  #       # there doesn't appear to be a debug specific module
+  #       - ray
 
-  - name: ray-k8s
-    build:
-      # Holding off on ray-k8s. defaults does not contain the kubernetes package and there is a bit
-      # to bring in for this.
-      skip: true
-    requirements:
-      host:
-        - python
-      run:
-        - python
-        - {{ pin_subpackage('ray-core', exact=True) }}
-        - kubernetes
-        - urllib3
-    test:
-      imports:
-        # there doesn't appear to be a k8s module, not sure how to test this
-        - ray
+  # - name: ray-k8s
+  #   build:
+  #     # Holding off on ray-k8s. defaults does not contain the kubernetes package and there is a bit
+  #     # to bring in for this.
+  #     skip: true
+  #   requirements:
+  #     host:
+  #       - python
+  #     run:
+  #       - python
+  #       - {{ pin_subpackage('ray-core', exact=True) }}
+  #       - kubernetes
+  #       - urllib3
+  #   test:
+  #     imports:
+  #       # there doesn't appear to be a k8s module, not sure how to test this
+  #       - ray
 
-  - name: ray-rllib
-    build:
-      entry_points:
-        - rllib = ray.rllib.scripts:cli
-    requirements:
-      host:
-        - python
-      run:
-        - python
-        - {{ pin_subpackage('ray-tune', exact=True) }}
-        - dm-tree
-        - gymnasium ==0.26.3
-        - lz4
-        - pyyaml
-        - scikit-image
-        - scipy
-        - typer
-        - rich
-    test:
-      imports:
-        - ray.rllib
-      requires:
-        - setuptools
-      commands:
-        # some interaction with rich and the test runner in azure
-        # xref https://github.com/Textualize/rich/issues/2411 ?
-        - python -c "import subprocess, os; os.environ['PYTHONIOENCODING']='utf-8'; subprocess.run(['rllib', '--help'], capture_output=True, check=True)"
+  # - name: ray-rllib
+  #   build:
+  #     entry_points:
+  #       - rllib = ray.rllib.scripts:cli
+  #   requirements:
+  #     host:
+  #       - python
+  #     run:
+  #       - python
+  #       - {{ pin_subpackage('ray-tune', exact=True) }}
+  #       - dm-tree
+  #       - gymnasium ==0.26.3
+  #       - lz4
+  #       - pyyaml
+  #       - scikit-image
+  #       - scipy
+  #       - typer
+  #       - rich
+  #   test:
+  #     imports:
+  #       - ray.rllib
+  #     requires:
+  #       - setuptools
+  #     commands:
+  #       # some interaction with rich and the test runner in azure
+  #       # xref https://github.com/Textualize/rich/issues/2411 ?
+  #       - python -c "import subprocess, os; os.environ['PYTHONIOENCODING']='utf-8'; subprocess.run(['rllib', '--help'], capture_output=True, check=True)"
 
-  - name: ray-data
-    requirements:
-      host:
-        - python
-      run:
-        - python
-        - {{ pin_subpackage('ray-core', exact=True) }}
-        - numpy >=1.20
-        - pandas >=1.3
-        - pyarrow >=6.0.1
-        - fsspec
-    test:
-      imports:
-        - ray.data
-      requires:
-        # For pkg_resources
-        - setuptools
+  # - name: ray-data
+  #   requirements:
+  #     host:
+  #       - python
+  #     run:
+  #       - python
+  #       - {{ pin_subpackage('ray-core', exact=True) }}
+  #       - numpy >=1.20
+  #       - pandas >=1.3
+  #       - pyarrow >=6.0.1
+  #       - fsspec
+  #   test:
+  #     imports:
+  #       - ray.data
+  #     requires:
+  #       # For pkg_resources
+  #       - setuptools
 
-  - name: ray-serve
-    build:
-      # starlette (starlette-base) and fastapi are missing in defaults
-      skip: True
-      entry_points:
-        - serve = ray.serve.scripts:cli
-    requirements:
-      host:
-        - python
-      run:
-        - python
-        - {{ pin_subpackage('ray-default', exact=True) }}
-        - aiorwlock
-        - requests
-        - uvicorn
-        # TODO: fastapi and starlette (starlette-base) are missing in defaults
-        #- fastapi
-        #- starlette
-    test:
-      imports:
-        - ray.serve
-      requires:
-        # For pkg_resources
-        - setuptools
+  # - name: ray-serve
+  #   build:
+  #     # starlette (starlette-base) and fastapi are missing in defaults
+  #     skip: True
+  #     entry_points:
+  #       - serve = ray.serve.scripts:cli
+  #   requirements:
+  #     host:
+  #       - python
+  #     run:
+  #       - python
+  #       - {{ pin_subpackage('ray-default', exact=True) }}
+  #       - aiorwlock
+  #       - requests
+  #       - uvicorn
+  #       # TODO: fastapi and starlette (starlette-base) are missing in defaults
+  #       #- fastapi
+  #       #- starlette
+  #   test:
+  #     imports:
+  #       - ray.serve
+  #     requires:
+  #       # For pkg_resources
+  #       - setuptools
 
-  - name: ray-tune
-    build:
-      entry_points:
-        - tune = ray.tune.scripts:cli
-    requirements:
-      host:
-        - python
-      run:
-        - python
-        - {{ pin_subpackage('ray-default', exact=True) }}
-        - pandas
-        - requests
-        - tabulate
-        - tensorboardX >=1.9
-    test:
-      imports:
-        - ray.tune
-      requires:
-        # For pkg_resources
-        - setuptools
+  # - name: ray-tune
+  #   build:
+  #     entry_points:
+  #       - tune = ray.tune.scripts:cli
+  #   requirements:
+  #     host:
+  #       - python
+  #     run:
+  #       - python
+  #       - {{ pin_subpackage('ray-default', exact=True) }}
+  #       - pandas
+  #       - requests
+  #       - tabulate
+  #       - tensorboardX >=1.9
+  #   test:
+  #     imports:
+  #       - ray.tune
+  #     requires:
+  #       # For pkg_resources
+  #       - setuptools
 
-  - name: ray-train
-    requirements:
-      host:
-        - python
-      run:
-        - python
-        - {{ pin_subpackage('ray-tune', exact=True) }}
-    test:
-      imports:
-        - ray.train
-      requires:
-        # For pkg_resources
-        - setuptools
+  # - name: ray-train
+  #   requirements:
+  #     host:
+  #       - python
+  #     run:
+  #       - python
+  #       - {{ pin_subpackage('ray-tune', exact=True) }}
+  #   test:
+  #     imports:
+  #       - ray.train
+  #     requires:
+  #       # For pkg_resources
+  #       - setuptools
 
-  # the various ray[extra] installs, alphabetically
-  - name: ray-air
-    build:
-      # ray-serve is not yet available
-      skip: True
-    requirements:
-      host:
-        - python
-      run:
-        - python
-        - {{ pin_subpackage('ray-data', exact=True) }}
-        #- {{ pin_subpackage('ray-serve', exact=True) }}
-        - {{ pin_subpackage('ray-train', exact=True) }}
-        - {{ pin_subpackage('ray-tune', exact=True) }}
-    test:
-      imports:
-        - ray.air
-      requires:
-        # For pkg_resources
-        - setuptools
+  # # the various ray[extra] installs, alphabetically
+  # - name: ray-air
+  #   build:
+  #     # ray-serve is not yet available
+  #     skip: True
+  #   requirements:
+  #     host:
+  #       - python
+  #     run:
+  #       - python
+  #       - {{ pin_subpackage('ray-data', exact=True) }}
+  #       #- {{ pin_subpackage('ray-serve', exact=True) }}
+  #       - {{ pin_subpackage('ray-train', exact=True) }}
+  #       - {{ pin_subpackage('ray-tune', exact=True) }}
+  #   test:
+  #     imports:
+  #       - ray.air
+  #     requires:
+  #       # For pkg_resources
+  #       - setuptools
 
 about:
   home: https://www.ray.io/
