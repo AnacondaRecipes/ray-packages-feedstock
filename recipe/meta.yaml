@@ -296,6 +296,9 @@ outputs:
     test:
       imports:
         - ray.serve
+      requires:
+        # For pkg_resources
+        - setuptools
 
   - name: ray-tune
     build:
@@ -314,6 +317,9 @@ outputs:
     test:
       imports:
         - ray.tune
+      requires:
+        # For pkg_resources
+        - setuptools
 
   - name: ray-train
     requirements:
@@ -325,6 +331,9 @@ outputs:
     test:
       imports:
         - ray.train
+      requires:
+        # For pkg_resources
+        - setuptools
 
   # the various ray[extra] installs, alphabetically
   - name: ray-air
@@ -343,6 +352,9 @@ outputs:
     test:
       imports:
         - ray.air
+      requires:
+        # For pkg_resources
+        - setuptools
 
 about:
   home: https://www.ray.io/
