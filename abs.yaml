@@ -1,0 +1,4 @@
+extra_labels_for_os:
+  # Try to run on osx_amd64_1 becasue it fails on osx_amd64_2.
+  # Bazel can't find the right SDK on osx_amd64_2...
+  osx-64: [osx_amd64_1]
