@@ -12,10 +12,10 @@ source:
     - patches/0004-Disable-making-non-core-entry-scripts.patch
     - patches/0010-Remove-all-dependencies-from-setup.py.patch
     - patches/0011-Ignore-warnings-in-event.cc-and-logging.cc.patch
-    - patches/0013-Add-bazel-linkopts-libs.patch
     # https://github.com/ray-project/ray/pull/34151
     - patches/0014-fix-namespaces.patch
     - patches/0015-Don-t-build-redis-with-jemalloc-on-linux-aarch64.patch  # [linux and aarch64]
+    - patches/0016-fix-redis-build-on-macos.patch  # [osx]
 
 build:
   number: 2
