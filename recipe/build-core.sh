@@ -5,10 +5,35 @@ bazel clean --expunge
 bazel shutdown
 
 if [[ "${target_platform}" == osx-* ]]; then
-  export LDFLAGS="${LDFLAGS} -lz -framework CoreFoundation -Xlinker -undefined -Xlinker dynamic_lookup"
+  # Pass down some environment variables. This is needed for https://github.com/ray-project/ray/blob/ray-2.3.0/bazel/BUILD.redis#L51.
+  echo build --action_env=CC_FOR_BUILD >> .bazelrc
+  echo build --action_env=CONDA_BUILD_SYSROOT >> .bazelrc
+  echo build --action_env=macos_min_version >> .bazelrc
+
+  # Set the macOSK to use and the minimum macOS version.
+  echo build --copt=-isysroot${CONDA_BUILD_SYSROOT} >> .bazelrc
+  echo build --copt=-mmacosx-version-min=${macos_min_version} >> .bazelrc
+  echo build --copt=-D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION >> .bazelrc
+
+  echo build --host_copt=-isysroot${CONDA_BUILD_SYSROOT} >> .bazelrc
+  echo build --host_copt=-mmacosx-version-min=${macos_min_version} >> .bazelrc
+  echo build --host_copt=-D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION >> .bazelrc
+
+  echo build --linkopt=-isysroot${CONDA_BUILD_SYSROOT} >> .bazelrc
+  echo build --linkopt=-mmacosx-version-min=${macos_min_version} >> .bazelrc
+
+  echo build --host_linkopt=-isysroot${CONDA_BUILD_SYSROOT} >> .bazelrc
+  echo build --host_linkopt=-mmacosx-version-min=${macos_min_version} >> .bazelrc
+
+  # We get come warnings that are transformed to errors. Downgrade them to warnings.
+  echo 'build --per_file_copt="spdlog/.*@-w"' >> .bazelrc
+  echo 'build --per_file_copt="src/ray/.*$@-w"' >> .bazelrc
 else
   export LDFLAGS="${LDFLAGS} -lrt"
 fi
+
+echo build --linkopt=-static-libstdc++ >> .bazelrc
+echo build --linkopt=-lm >> .bazelrc
 
 # For some weird reason, ar is not picked up on linux-aarch64
 if [ $(uname -s) = "Linux" ] && [ ! -f "${BUILD_PREFIX}/bin/ar" ]; then

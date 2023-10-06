@@ -12,18 +12,19 @@ source:
     - patches/0004-Disable-making-non-core-entry-scripts.patch
     - patches/0010-Remove-all-dependencies-from-setup.py.patch
     - patches/0011-Ignore-warnings-in-event.cc-and-logging.cc.patch
-    - patches/0013-Add-bazel-linkopts-libs.patch
     # https://github.com/ray-project/ray/pull/34151
     - patches/0014-fix-namespaces.patch
+    - patches/0015-Don-t-build-redis-with-jemalloc-on-linux-aarch64.patch  # [linux and aarch64]
+    - patches/0016-fix-redis-build-on-macos.patch  # [osx]
 
 build:
-  number: 1
+  number: 2
   # py36 is technically supported but we don't want to build for it
   # ray-core is the only output to support 3.11 at the moment.
   skip: true  # [py<38 or py>310]
   # skipping architectures that do not yet have bazel, so only build for linux64 & win64.
   # skipping osx and aarch64 for now, as there are complicated bazel errors with external redis (symbols, dependant libraries, and objects).
-  skip: true  # [(linux and (s390x or ppc64le or aarch64))]
+  skip: true  # [(linux and (s390x or ppc64le))]
 
 # Need these up here to handle them properly.
 requirements:
@@ -45,7 +46,6 @@ requirements:
   host:
     - python
     - pip
-    - packaging
     - pkg-config  # [osx]
     - setuptools
     - wheel
@@ -102,7 +102,6 @@ outputs:
         - python
         - openjdk =11
         - pip
-        - packaging
         - pkg-config  # [osx]
         - setuptools
         - wheel
@@ -126,6 +125,10 @@ outputs:
         - requests
         - setproctitle =1.2.2
         - virtualenv >=20.0.24
+        # Needed because ray imports pkg_resources in multiple places.
+        # Upstream deosn't declare it... Please remove as soon as it's not required
+        # anymore (for example in the latest ray package).
+        - setuptools
 
     test:
       imports:
@@ -265,9 +268,6 @@ outputs:
     test:
       imports:
         - ray.data
-      requires:
-        # For pkg_resources
-        - setuptools
 
   - name: ray-serve
     build:

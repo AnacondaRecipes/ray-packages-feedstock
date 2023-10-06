@@ -1,0 +1,27 @@
+From adc3bfd508aa7b8ce00ed6d5122ca87cc71c2665 Mon Sep 17 00:00:00 2001
+From: Jean-Christophe Morin <jcmorin@anaconda.com>
+Date: Fri, 29 Sep 2023 12:52:56 -0400
+Subject: [PATCH] Don't build redis with jemalloc on linux-aarch64 to avoid a
+ mysterious linking error:
+
+LINK redis-server
+defrag.o:defrag.c:function activeDefragAlloc: error: undefined reference to 'je_get_defrag_hint'
+---
+ bazel/BUILD.redis | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/bazel/BUILD.redis b/bazel/BUILD.redis
+index 9edccf5780..d0087f8531 100644
+--- a/bazel/BUILD.redis
++++ b/bazel/BUILD.redis
+@@ -21,6 +21,7 @@ make(
+     name = "redis",
+     args = [
+         "BUILD_TLS=yes",
++        "USE_JEMALLOC=no",
+         "-s",
+     ],
+     copts = [
+-- 
+2.42.0
+
