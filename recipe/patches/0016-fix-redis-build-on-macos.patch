@@ -8,21 +8,29 @@ Subject: [PATCH] Fix bazel build of redis on macOS when -isysroot is used.
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/bazel/BUILD.redis b/bazel/BUILD.redis
-index d0087f8531..96cb0540f5 100644
+index 60e070028f..dd5dddd3f2 100644
 --- a/bazel/BUILD.redis
 +++ b/bazel/BUILD.redis
-@@ -44,12 +43,13 @@ make(
+@@ -42,17 +42,17 @@ make(
+ 
  genrule_cmd = select({
      "@bazel_tools//src/conditions:darwin": """
-         unset CC LDFLAGS CXX CXXFLAGS
+-        export CC=$(CC)
 +        export CC=$${CC_FOR_BUILD}
+         export CFLAGS=$(CC_FLAGS)
+-        export AR=$${CC/gnu-cc/gnu-ar}
+-        export NM=$${CC/gnu-cc/gnu-nm}
+-        export RANLIB=$${CC/gnu-cc/gnu-ranlib}
++        export AR=$${AR/gnu-cc/gnu-ar}
++        export NM=$${NM/gnu-cc/gnu-nm}
++        export RANLIB=$${RANLIB/gnu-cc/gnu-ranlib}
          tmpdir="redis.tmp"
          p=$(location Makefile)
          cp -p -L -R -- "$${p%/*}" "$${tmpdir}"
          chmod +x "$${tmpdir}"/deps/jemalloc/configure
          parallel="$$(getconf _NPROCESSORS_ONLN || echo 1)"
--        make -s -C "$${tmpdir}" -j"$${parallel}" V=0 CFLAGS="$${CFLAGS-} -DLUA_USE_MKSTEMP -Wno-pragmas -Wno-empty-body"
-+        make -s -C "$${tmpdir}" -j"$${parallel}" V=0 CFLAGS="$${CFLAGS-} -DLUA_USE_MKSTEMP -Wno-pragmas -Wno-empty-body -isysroot $${CONDA_BUILD_SYSROOT} -mmacosx-version-min=$${macos_min_version}" LDFLAGS="$${LDFLAGS-} -mmacosx-version-min=$${macos_min_version}"
+-        make -s -C "$${tmpdir}" -j"$${parallel}" V=0 CFLAGS="$${CFLAGS-} -DLUA_USE_MKSTEMP -Wno-pragmas -Wno-empty-body" AR="$${AR}" RANLIB="$${RANLIB}"
++        make -s -C "$${tmpdir}" -j"$${parallel}" V=0 CFLAGS="$${CFLAGS-} -DLUA_USE_MKSTEMP -Wno-pragmas -Wno-empty-body" AR="$${AR}" RANLIB="$${RANLIB} -isysroot $${CONDA_BUILD_SYSROOT} -mmacosx-version-min=$${macos_min_version}" LDFLAGS="$${LDFLAGS-} -mmacosx-version-min=$${macos_min_version}"
          mv "$${tmpdir}"/src/redis-server $(location redis-server)
          chmod +x $(location redis-server)
          mv "$${tmpdir}"/src/redis-cli $(location redis-cli)
