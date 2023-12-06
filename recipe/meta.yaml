@@ -132,7 +132,7 @@ outputs:
         # Needed because ray imports pkg_resources in multiple places.
         # Upstream deosn't declare it... Please remove as soon as it's not required
         # anymore (for example in the latest ray package).
-        # - setuptools
+        - setuptools
 
     test:
       imports:
