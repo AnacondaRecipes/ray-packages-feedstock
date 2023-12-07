@@ -22,7 +22,8 @@ source:
 
 build:
   number: 2
-  skip: true  # [py<38 or py>311]
+  # Skip python 311 because gymnasium 0.26.3 is not available on 3.11.
+  skip: true  # [py<38 or py>310]
   # skipping architectures that do not yet have bazel, so only build for linux64 & win64.
   # skipping osx and aarch64 for now, as there are complicated bazel errors with external redis (symbols, dependant libraries, and objects).
   skip: true  # [(linux and (s390x or ppc64le))]
