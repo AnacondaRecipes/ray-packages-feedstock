@@ -196,6 +196,7 @@ outputs:
         - python
         - {{ pin_subpackage('ray-default', exact=True) }}
         - typing-extensions
+        - async-timeout
     test:
       imports:
         - ray.dashboard
