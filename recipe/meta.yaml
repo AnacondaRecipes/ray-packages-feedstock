@@ -37,8 +37,7 @@ requirements:
     - m2-patch       # [win]
     - bazel ==4.2.2
     - curl
-    - cython >=0.29.32
-    - git
+    - git  # [not win]
     - m2-make   # [win]
     - make      # [not win]
     - pkg-config  # [osx or (linux and aarch64)]
@@ -48,6 +47,7 @@ requirements:
   host:
     - python
     - pip
+    - cython >=0.29.32
     - pkg-config  # [osx]
     - setuptools
     - wheel
@@ -94,10 +94,8 @@ outputs:
         - patch          # [not win]
         - m2-patch       # [win]
         - bazel =5.4.1
-        - colorama
         - curl
-        - cython >=0.29.32
-        - git
+        - git  # [not win]
         - m2-make   # [win]
         - make      # [not win]
         - pkg-config  # [osx or (linux and aarch64)]
@@ -110,6 +108,7 @@ outputs:
         - openjdk =11
         - pip
         - pkg-config  # [osx]
+        - cython >=0.29.32
         - setuptools
         - wheel
       run:
