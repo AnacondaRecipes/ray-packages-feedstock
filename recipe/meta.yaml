@@ -159,9 +159,7 @@ outputs:
         - aiohttp >=3.7
         - aiohttp-cors
         - colorful
-        # gpustat has a dependency which does not exist on Windows;
-        # skip it there until gpustat is fixed as it is optional.
-        - gpustat
+        - gpustat >=1.0.0
         - opencensus
         - prometheus_client >=0.7.1,<0.14.0
         - pydantic <2.0
