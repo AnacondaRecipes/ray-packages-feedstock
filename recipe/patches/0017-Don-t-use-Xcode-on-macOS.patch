@@ -1,0 +1,47 @@
+From 1baedce7c636baf86921a61302b3c30bf7e6d084 Mon Sep 17 00:00:00 2001
+From: Jean-Christophe Morin <jcmorin@anaconda.com>
+Date: Mon, 11 Dec 2023 12:51:12 -0500
+Subject: [PATCH] Don't use Xcode on macOS
+
+This avoids problem like:
+
+
+ERROR: /private/var/tmp/_bazel_builder/6d97ed31118b94178270d4dc298b9d87/external/upb/upbc/BUILD:63:10: Compiling upbc/protoc-gen-upbdefs.cc failed: (Aborted): wrapped_clang_pp failed: error executing command 
+  (cd /private/var/tmp/_bazel_builder/6d97ed31118b94178270d4dc298b9d87/sandbox/darwin-sandbox/1/execroot/com_github_ray_project_ray && \
+  exec env - \
+    APPLE_SDK_PLATFORM=MacOSX \
+    APPLE_SDK_VERSION_OVERRIDE=11.3 \
+    PATH='/Users/builder/jcmorin/miniconda/conda-bld/ray-packages_1702310664061/_build_env/bin:/Users/builder/jcmorin/miniconda/conda-bld/ray-packages_1702310664061/_h_env_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehol/bin:/Users/builder/jcmorin/miniconda/condabin:/Users/builder/jcmorin/miniconda/bin:/Users/builder/jcmorin/miniconda/condabin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Applications/VMware Fusion.app/Contents/Public:/Library/Apple/usr/bin' \
+    XCODE_VERSION_OVERRIDE=13.0.0.13A233 \
+    ZERO_AR_DATE=1 \
+  external/local_config_cc/wrapped_clang_pp '-D_FORTIFY_SOURCE=1' -fstack-protector -fcolor-diagnostics -Wall -Wthread-safety -Wself-assign -fno-omit-frame-pointer -g0 -O2 -DNDEBUG '-DNS_BLOCK_ASSERTIONS=1' '-std=c++11' 'DEBUG_PREFIX_MAP_PWD=.' -iquote external/upb -iquote bazel-out/darwin-opt-exec-2B5CBBC6/bin/external/upb -iquote external/com_google_absl -iquote bazel-out/darwin-opt-exec-2B5CBBC6/bin/external/com_google_absl -iquote external/com_google_protobuf -iquote bazel-out/darwin-opt-exec-2B5CBBC6/bin/external/com_google_protobuf -iquote external/zlib -iquote bazel-out/darwin-opt-exec-2B5CBBC6/bin/external/zlib -iquote external/bazel_tools -iquote bazel-out/darwin-opt-exec-2B5CBBC6/bin/external/bazel_tools -isystem external/com_google_protobuf/src -isystem bazel-out/darwin-opt-exec-2B5CBBC6/bin/external/com_google_protobuf/src -isystem external/zlib -isystem bazel-out/darwin-opt-exec-2B5CBBC6/bin/external/zlib -MD -MF bazel-out/darwin-opt-exec-2B5CBBC6/bin/external/upb/upbc/_objs/protoc-gen-upbdefs/protoc-gen-upbdefs.d '-frandom-seed=bazel-out/darwin-opt-exec-2B5CBBC6/bin/external/upb/upbc/_objs/protoc-gen-upbdefs/protoc-gen-upbdefs.o' -isysroot __BAZEL_XCODE_SDKROOT__ -F__BAZEL_XCODE_SDKROOT__/System/Library/Frameworks -F__BAZEL_XCODE_DEVELOPER_DIR__/Platforms/MacOSX.platform/Developer/Library/Frameworks -no-canonical-prefixes -pthread -g0 -isysroot/opt/MacOSX10.15.sdk '-mmacosx-version-min=10.15' -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION -g0 -Wextra -Werror -Wno-long-long -no-canonical-prefixes -Wno-builtin-macro-redefined '-D__DATE__="redacted"' '-D__TIMESTAMP__="redacted"' '-D__TIME__="redacted"' -target x86_64-apple-macosx11.3 -c external/upb/upbc/protoc-gen-upbdefs.cc -o bazel-out/darwin-opt-exec-2B5CBBC6/bin/external/upb/upbc/_objs/protoc-gen-upbdefs/protoc-gen-upbdefs.o)
+# Configuration: fda3e6aded14728daba0304abd7f1d19376a6c770f575f6a9653104b3c9200a0
+# Execution platform: @local_config_platform//:host
+
+Use --sandbox_debug to see verbose messages from the sandbox and retain the sandbox build root for debugging
+clang++: error: overriding '-mmacosx-version-min=10.15' option with '-target x86_64-apple-macosx11.3' [-Werror,-Woverriding-t-option]
+Error in child process '/usr/bin/xcrun'. 1
+
+---
+ python/setup.py | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/python/setup.py b/python/setup.py
+index d1566cf14f..6309e87255 100644
+--- a/python/setup.py
++++ b/python/setup.py
+@@ -605,6 +605,11 @@ def build(build_python, build_java, build_cpp):
+     if setup_spec.build_type == BuildType.TSAN:
+         bazel_flags.extend(["--config=tsan"])
+ 
++    if sys.platform == "darwin":
++        # We don't want to use Xcode on macOS. BAZEL_USE_CPP_ONLY_TOOLCHAIN
++        # will force bazel to not use Xcode.
++        bazel_env["BAZEL_USE_CPP_ONLY_TOOLCHAIN"] = "1"
++
+     return bazel_invoke(
+         subprocess.check_call,
+         bazel_precmd_flags + ["build"] + bazel_flags + ["--"] + bazel_targets,
+-- 
+2.43.0
+

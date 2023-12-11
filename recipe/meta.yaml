@@ -15,6 +15,7 @@ source:
     - patches/0005-Remove-all-dependencies-from-setup.py.patch
     - patches/0015-Don-t-build-redis-with-jemalloc-on-linux-aarch64.patch  # [linux and aarch64]
     - patches/0016-fix-redis-build-on-macos.patch  # [osx]
+    - patches/0017-Don-t-use-Xcode-on-macOS.patch
 
 build:
   number: 2
@@ -30,7 +31,7 @@ requirements:
     - {{ compiler('cxx') }}
     - patch          # [not win]
     - m2-patch       # [win]
-    - bazel ==4.2.2
+    - bazel =5.4.1
     - curl
     - git  # [not win]
     - m2-make   # [win]
