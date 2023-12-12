@@ -2,9 +2,15 @@ bazel clean --expunge
 bazel shutdown
 
 cd python
+echo on
 set SKIP_THIRDPARTY_INSTALL=1
 set IS_AUTOMATED_BUILD=1
 set "BAZEL_SH=%BUILD_PREFIX%\Library\usr\bin\bash.exe"
+
+echo ==========================================================
+echo calling pip install
+echo ==========================================================
+
 "%PYTHON%" -m pip install . --no-deps --no-build-isolation
 rem remember the return code
 set RETCODE=%ERRORLEVEL%

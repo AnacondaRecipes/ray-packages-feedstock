@@ -6,6 +6,7 @@ bazel shutdown
 
 if [[ "${target_platform}" == osx-* ]]; then
   # Pass down some environment variables. This is needed for https://github.com/ray-project/ray/blob/ray-2.3.0/bazel/BUILD.redis#L51.
+  echo build --action_env=AR >> .bazelrc
   echo build --action_env=CC_FOR_BUILD >> .bazelrc
   echo build --action_env=CONDA_BUILD_SYSROOT >> .bazelrc
   echo build --action_env=macos_min_version >> .bazelrc
@@ -34,6 +35,10 @@ fi
 
 echo build --linkopt=-static-libstdc++ >> .bazelrc
 echo build --linkopt=-lm >> .bazelrc
+
+# To debug, uncomment this
+# echo build --subcommands >> .bazelrc
+# echo build --verbose_failures >> .bazelrc
 
 # For some weird reason, ar is not picked up on linux-aarch64
 if [ $(uname -s) = "Linux" ] && [ ! -f "${BUILD_PREFIX}/bin/ar" ]; then
