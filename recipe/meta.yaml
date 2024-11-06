@@ -1,4 +1,4 @@
-{% set version = "2.6.3" %}
+{% set version = "2.37.0" %}
 
 package:
   name: ray-packages
@@ -6,7 +6,7 @@ package:
 
 source:
   url: https://github.com/ray-project/ray/archive/ray-{{ version }}.tar.gz
-  sha256: 8cb87bc70fdc00c8c028906280e27f5139d6c7ebcee30f88f92beccfde296338
+  sha256: dcf92302ba813080003f33cb874912ee950331f2348822a2b615eb46f9baf0f8
   patches:
     - patches/0001-Redis-deps-now-build-but-do-not-link.patch
     - patches/0002-Disable-making-entry-scripts.patch
@@ -18,10 +18,8 @@ source:
     - patches/0017-Don-t-use-Xcode-on-macOS.patch
 
 build:
-  number: 2
-  skip: true  # [py<38 or py>=312]
-  # skipping architectures that do not yet have bazel, so only build for linux64 & win64.
-  # skipping osx and aarch64 for now, as there are complicated bazel errors with external redis (symbols, dependant libraries, and objects).
+  number: 0
+  skip: true  # [py<39 or py>312]
   skip: true  # [(linux and (s390x or ppc64le))]
 
 # Need these up here to handle them properly.
@@ -31,7 +29,7 @@ requirements:
     - {{ compiler('cxx') }}
     - patch          # [not win]
     - m2-patch       # [win]
-    - bazel =5.4.1
+    - bazel =6.5.0
     - curl
     - git  # [not win]
     - m2-make   # [win]
@@ -85,50 +83,26 @@ outputs:
         - ray = ray.scripts.scripts:main
     requirements:
       build:
-        - {{ compiler('c') }}
-        - {{ compiler('cxx') }}
-        - patch          # [not win]
-        - m2-patch       # [win]
-        - bazel =5.4.1
-        - curl
-        - git  # [not win]
-        - m2-make   # [win]
-        - make      # [not win]
-        - pkg-config  # [osx or (linux and aarch64)]
-        - patchelf  # [linux]
         - psutil
-        - python
-        - sysroot_linux-64 2.17  # [linux and x86_64]
       host:
-        - python
         - openjdk =11
-        - pip
-        - pkg-config  # [osx]
-        - cython >=0.29.32
-        - setuptools
-        - wheel
       run:
         - python
-        - aiosignal
         - click >=7.0
-        - colorama
         - filelock
-        - frozenlist
-        - grpcio >=1.42,<1.49
         - jsonschema
         - msgpack-python >=1.0.0,<2.0.0
-        - numpy >=1.16    # [py<39]
-        - numpy >=1.19.3  # [py>=39]
         - packaging
         - protobuf >=3.15.3,!=3.19.5
-        - psutil
         - pyyaml
+        - aiosignal
+        - frozenlist
         - requests
+        # Named "Third-party Install" Upstream
+        - psutil
         - setproctitle ==1.2.2
-        # Needed because ray imports pkg_resources in multiple places.
-        # Upstream deosn't declare it... Please remove as soon as it's not required
-        # anymore (for example in the latest ray package).
-        - setuptools
+        - colorama
+        - aiohttp
 
     test:
       imports:
@@ -154,15 +128,15 @@ outputs:
         - aiohttp >=3.7
         - aiohttp-cors
         - colorful
-        - gpustat >=1.0.0
+        - grpcio >=1.42.0
+        - memray          # [not win]
         - opencensus
         - prometheus_client >=0.7.1,<0.14.0
-        - pydantic <2.0
-        - jsonschema
+        - py-spy >=0.2.0
+        - pydantic !=2.0.*,!=2.1.*,!=2.2.*,!=2.3.*,!=2.4.*,<3
         - requests
         - smart_open
-        - py-spy >=0.2.0
-        - virtualenv >=20.0.24,<20.21.1
+        - virtualenv >=20.0.24,!=20.21.1
 
     test:
       imports:
@@ -185,7 +159,7 @@ outputs:
         - cp -R ./build $SP_DIR/ray/dashboard/client/build  # [not win]
     requirements:
       host:
-        - nodejs <18
+        - nodejs
         - python
       run:
         - python
@@ -240,7 +214,7 @@ outputs:
         - python
         - {{ pin_subpackage('ray-tune', exact=True) }}
         - dm-tree
-        - gymnasium ==0.26.3
+        - gymnasium ==0.28.1
         - lz4
         - pyyaml
         - scikit-image
@@ -304,7 +278,7 @@ outputs:
         - {{ pin_subpackage('ray-default', exact=True) }}
         - pandas
         - pyarrow >=6.0.1
-        - requests
+        - fsspec
         - tensorboardX >=1.9
     test:
       imports:

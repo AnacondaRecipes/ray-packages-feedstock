@@ -21,7 +21,7 @@ index 9edccf5780..60e070028f 100644
 @@ -42,13 +42,17 @@ make(
  
  genrule_cmd = select({
-     "@bazel_tools//src/conditions:darwin": """
+     "@platforms//os:osx": """
 -        unset CC LDFLAGS CXX CXXFLAGS
 +        export CC=$(CC)
 +        export CFLAGS=$(CC_FLAGS)
