@@ -17,6 +17,7 @@ source:
     - patches/0016-fix-redis-build-on-macos.patch  # [osx]
     - patches/0017-Don-t-use-Xcode-on-macOS.patch
     - patches/0018-Remove-runtime-agent-dependencies.patch
+    - patches/0019-downgrade-FORTIFY_SOURCE-in-aarch64.patch # [linux and aarch64]
 
 build:
   number: 0
@@ -26,31 +27,6 @@ build:
     build:
       - patch          # [not win]
       - m2-patch       # [win]
-      - {{ compiler('c') }}         # [not (linux and aarch64)]
-      - {{ compiler('cxx') }}       # [not (linux and aarch64)]
-      - gcc_linux-aarch64 10.2      # [linux and aarch64]
-      - libgcc-ngs 10.2             # [linux and aarch64]
-      - libgomp 10.2                # [linux and aarch64]
-      - libstdcxx-ng 10.2           # [linux and aarch64]
-      - bazel =6.5.0
-      - curl
-      - git  # [not win]
-      - m2-make   # [win]
-      - make      # [not win]
-      - pkg-config  # [osx or (linux and aarch64)]
-      - patchelf  # [linux]
-      - python  
-      - sysroot_linux-64 2.17  # [linux and x86_64]
-      - psutil
-    host:
-      - python
-      - pip
-      - cython >=0.29.32
-      - pkg-config  # [osx]
-      - setuptools
-      - wheel
-      - openjdk =11
-
 
 outputs:
   - name: ray-all
@@ -89,12 +65,8 @@ outputs:
         - ray = ray.scripts.scripts:main
     requirements:
       build:
-        - {{ compiler('c') }}         # [not (linux and aarch64)]
-        - {{ compiler('cxx') }}       # [not (linux and aarch64)]
-        - gcc_linux-aarch64 10.2      # [linux and aarch64]
-        - libgcc-ngs 10.2             # [linux and aarch64]
-        - libgomp 10.2                # [linux and aarch64]
-        - libstdcxx-ng 10.2           # [linux and aarch64]
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
         - bazel =6.5.0
         - curl
         - git  # [not win]
