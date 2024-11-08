@@ -29,6 +29,9 @@ build:
       - {{ compiler('c') }}         # [not (linux and aarch64)]
       - {{ compiler('cxx') }}       # [not (linux and aarch64)]
       - gcc_linux-aarch64 10.2      # [linux and aarch64]
+      - libgcc-ngs 10.2             # [linux and aarch64]
+      - libgomp 10.2                # [linux and aarch64]
+      - libstdcxx-ng 10.2           # [linux and aarch64]
       - bazel =6.5.0
       - curl
       - git  # [not win]
@@ -89,6 +92,9 @@ outputs:
         - {{ compiler('c') }}         # [not (linux and aarch64)]
         - {{ compiler('cxx') }}       # [not (linux and aarch64)]
         - gcc_linux-aarch64 10.2      # [linux and aarch64]
+        - libgcc-ngs 10.2             # [linux and aarch64]
+        - libgomp 10.2                # [linux and aarch64]
+        - libstdcxx-ng 10.2           # [linux and aarch64]
         - bazel =6.5.0
         - curl
         - git  # [not win]
