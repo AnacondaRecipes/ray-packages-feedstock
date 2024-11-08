@@ -1,0 +1,37 @@
+From bb6cf778418e9c255b909882ee7db0feaa545424 Mon Sep 17 00:00:00 2001
+From: Mohamed Sentissi <msentissi@anaconda.com>
+Date: Thu, 7 Nov 2024 15:27:09 -0500
+Subject: [PATCH] Remove runtime agent dependencies
+
+---
+ python/setup.py | 14 --------------
+ 1 file changed, 14 deletions(-)
+
+diff --git a/python/setup.py b/python/setup.py
+index 3898eb6..3e21bb7 100644
+--- a/python/setup.py
++++ b/python/setup.py
+@@ -542,20 +542,6 @@ def build(build_python, build_java, build_cpp):
+             env=dict(os.environ, CC="gcc"),
+         )
+ 
+-    # runtime env agent dependenceis
+-    runtime_env_agent_pip_packages = ["aiohttp"]
+-    subprocess.check_call(
+-        [
+-            sys.executable,
+-            "-m",
+-            "pip",
+-            "install",
+-            "-q",
+-            "--target=" + os.path.join(ROOT_DIR, RUNTIME_ENV_AGENT_THIRDPARTY_SUBDIR),
+-        ]
+-        + runtime_env_agent_pip_packages
+-    )
+-
+     bazel_flags = ["--verbose_failures"]
+     if BAZEL_ARGS:
+         bazel_flags.extend(shlex.split(BAZEL_ARGS))
+-- 
+2.45.2
+

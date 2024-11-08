@@ -16,35 +16,15 @@ source:
     - patches/0015-Don-t-build-redis-with-jemalloc-on-linux-aarch64.patch  # [linux and aarch64]
     - patches/0016-fix-redis-build-on-macos.patch  # [osx]
     - patches/0017-Don-t-use-Xcode-on-macOS.patch
+    - patches/0018-Remove-runtime-agent-dependencies.patch
 
 build:
   number: 0
   skip: true  # [py<39 or py>312]
   skip: true  # [(linux and (s390x or ppc64le))]
-
-# Need these up here to handle them properly.
-requirements:
-  build:
-    - {{ compiler('c') }}
-    - {{ compiler('cxx') }}
+  requirements:
     - patch          # [not win]
     - m2-patch       # [win]
-    - bazel =6.5.0
-    - curl
-    - git  # [not win]
-    - m2-make   # [win]
-    - make      # [not win]
-    - pkg-config  # [osx or (linux and aarch64)]
-    - patchelf  # [linux]
-    - python  
-    - sysroot_linux-64 2.17  # [linux and x86_64]
-  host:
-    - python
-    - pip
-    - cython >=0.29.32
-    - pkg-config  # [osx]
-    - setuptools
-    - wheel
 
 outputs:
   - name: ray-all
@@ -83,8 +63,25 @@ outputs:
         - ray = ray.scripts.scripts:main
     requirements:
       build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - bazel =6.5.0
+        - curl
+        - git  # [not win]
+        - m2-make   # [win]
+        - make      # [not win]
+        - pkg-config  # [osx or (linux and aarch64)]
+        - patchelf  # [linux]
+        - python  
+        - sysroot_linux-64 2.17  # [linux and x86_64]
         - psutil
       host:
+        - python
+        - pip
+        - cython >=0.29.32
+        - pkg-config  # [osx]
+        - setuptools
+        - wheel
         - openjdk =11
       run:
         - python

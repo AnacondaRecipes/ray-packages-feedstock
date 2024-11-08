@@ -1,20 +1,20 @@
-From 8d9bbf5e0b1156d2880fc57bdff191929a401701 Mon Sep 17 00:00:00 2001
-From: Jean-Christophe Morin <jcmorin@anaconda.com>
-Date: Wed, 4 Oct 2023 17:29:42 -0400
-Subject: [PATCH] Fix bazel build of redis on macOS when -isysroot is used.
+From 82991197ec7ec8d2bf981d916531fcd08a5a4d87 Mon Sep 17 00:00:00 2001
+From: Mohamed Sentissi <msentissi@anaconda.com>
+Date: Fri, 8 Nov 2024 10:15:12 -0500
+Subject: [PATCH] fix redis build on macos
 
 ---
- bazel/BUILD.redis | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ bazel/BUILD.redis | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/bazel/BUILD.redis b/bazel/BUILD.redis
-index 60e070028f..dd5dddd3f2 100644
+index 818ab93..4adfd13 100644
 --- a/bazel/BUILD.redis
 +++ b/bazel/BUILD.redis
 @@ -42,17 +42,17 @@ make(
  
  genrule_cmd = select({
-     "@bazel_tools//src/conditions:darwin": """
+     "@platforms//os:osx": """
 -        export CC=$(CC)
 +        export CC=$${CC_FOR_BUILD}
          export CFLAGS=$(CC_FLAGS)
@@ -35,5 +35,5 @@ index 60e070028f..dd5dddd3f2 100644
          chmod +x $(location redis-server)
          mv "$${tmpdir}"/src/redis-cli $(location redis-cli)
 -- 
-2.42.0
+2.45.2
 

@@ -1,13 +1,14 @@
-From b7068dad4e4de47921f38f326e52c6c7df84ca16 Mon Sep 17 00:00:00 2001
+From eed3c457b01447e2c7f226006070a7e9eb454896 Mon Sep 17 00:00:00 2001
 From: Mohamed Sentissi <msentissi@anaconda.com>
-Date: Thu, 7 Nov 2024 13:45:56 -0500
-Subject: [PATCH] Redis deps now build but do not link patch
+Date: Thu, 7 Nov 2024 15:49:16 -0500
+Subject: [PATCH] Redis deps now build but do not link
 
 ---
- bazel/BUILD.redis                    | 13 +++++-
- bazel/ray_deps_setup.bzl             |  2 +-
- thirdparty/patches/redis-quiet.patch | 64 +++++++++++++++++++++++++---
+ bazel/BUILD.redis                             | 13 +++-
+ bazel/ray_deps_setup.bzl                      |  2 +-
+ ...01-keep-redis-quiet-and-override-AR.patch} | 64 +++++++++++++++++--
  3 files changed, 71 insertions(+), 8 deletions(-)
+ rename thirdparty/patches/{redis-quiet.patch => 0001-keep-redis-quiet-and-override-AR.patch} (61%)
 
 diff --git a/bazel/BUILD.redis b/bazel/BUILD.redis
 index 68e06a7..818ab93 100644
@@ -57,10 +58,13 @@ index 787a4be..bc9f737 100644
          ],
          workspace_file_content = 'workspace(name = "com_github_antirez_redis")',
      )
-diff --git a/thirdparty/patches/redis-quiet.patch b/thirdparty/patches/redis-quiet.patch
+diff --git a/thirdparty/patches/redis-quiet.patch b/thirdparty/patches/0001-keep-redis-quiet-and-override-AR.patch
+similarity index 61%
+rename from thirdparty/patches/redis-quiet.patch
+rename to thirdparty/patches/0001-keep-redis-quiet-and-override-AR.patch
 index 3a5449d..b472f7b 100644
 --- a/thirdparty/patches/redis-quiet.patch
-+++ b/thirdparty/patches/redis-quiet.patch
++++ b/thirdparty/patches/0001-keep-redis-quiet-and-override-AR.patch
 @@ -1,14 +1,45 @@
 +From 10feb7a20122e021efb27d3eebcf55424f3c8d55 Mon Sep 17 00:00:00 2001
 +From: mehrdadn <mehrdadn@users.noreply.github.com>
