@@ -17,7 +17,7 @@ source:
     - patches/0016-fix-redis-build-on-macos.patch  # [osx]
     - patches/0017-Don-t-use-Xcode-on-macOS.patch
     - patches/0018-Remove-runtime-agent-dependencies.patch
-    - patches/0019-downgrade-FORTIFY_SOURCE-in-aarch64.patch # [linux and aarch64]
+    - patches/0019-ignore-stringop-overflow-in-aarch64.patch # [linux and aarch64]
 
 build:
   number: 0

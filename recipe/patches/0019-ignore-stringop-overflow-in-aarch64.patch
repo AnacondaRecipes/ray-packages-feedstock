@@ -1,0 +1,25 @@
+From 28eca1572c1f7133817e64eed08605731e616fef Mon Sep 17 00:00:00 2001
+From: Mohamed Sentissi <msentissi@anaconda.com>
+Date: Fri, 8 Nov 2024 17:15:05 -0500
+Subject: [PATCH] ignore stringop-overflow in aarch64
+
+---
+ .bazelrc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/.bazelrc b/.bazelrc
+index 85aa606..83e5dbc 100644
+--- a/.bazelrc
++++ b/.bazelrc
+@@ -49,7 +49,7 @@ build:clang-cl --per_file_copt="-\\.(asm|S)$@-Werror"
+ build:msvc-cl     --per_file_copt="-\\.(asm|S)$@-WX"
+ # Ignore warnings for protobuf generated files and external projects.
+ build --per_file_copt="\\.pb\\.cc$@-w"
+-build:linux --per_file_copt="-\\.(asm|S)$,external/.*@-w,-Wno-error=implicit-function-declaration"
++build:linux --per_file_copt="-\\.(asm|S)$,external/.*@-w,-Wno-error=implicit-function-declaration,-Wno-error=stringop-overflow"
+ build:macos --per_file_copt="-\\.(asm|S)$,external/.*@-w,-Wno-error=implicit-function-declaration"
+ # Ignore warnings for host tools, which we generally can't control.
+ # Ideally we only want to ignore warnings for external project
+-- 
+2.45.2
+
