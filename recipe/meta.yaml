@@ -23,8 +23,9 @@ build:
   skip: true  # [py<39 or py>312]
   skip: true  # [(linux and (s390x or ppc64le))]
   requirements:
-    - patch          # [not win]
-    - m2-patch       # [win]
+    build:
+      - patch          # [not win]
+      - m2-patch       # [win]
 
 outputs:
   - name: ray-all
