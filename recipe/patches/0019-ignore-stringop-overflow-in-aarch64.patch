@@ -11,12 +11,12 @@ diff --git a/.bazelrc b/.bazelrc
 index 7a6b2df..5e2f1bb 100644
 --- a/.bazelrc
 +++ b/.bazelrc
-@@ -52,7 +52,7 @@ build --per_file_copt="\\.pb\\.cc$@-w"
+@@ -52,7 +52,8 @@ build --per_file_copt="\\.pb\\.cc$@-w"
  # Ignore one specific warning
  build --per_file_copt="event\\.cc$@-w"
  build --per_file_copt="logging\\.cc$@-w"
--build:linux --per_file_copt="-\\.(asm|S)$,external/.*@-w,-Wno-error=implicit-function-declaration"
-+build:linux --per_file_copt="-\\.(asm|S)$,external/.*@-w,-Wno-error=implicit-function-declaration,-Wno-error=stringop-overflow"
++build:linux --per_file_copt="external/upb/upbc/protoc-gen-upbdefs.cc@-Wno-error=implicit-function-declaration"
+ build:linux --per_file_copt="-\\.(asm|S)$,external/.*@-w,-Wno-error=implicit-function-declaration"
  build:macos --per_file_copt="-\\.(asm|S)$,external/.*@-w,-Wno-error=implicit-function-declaration"
  # Ignore warnings for host tools, which we generally can't control.
  # Ideally we only want to ignore warnings for external project
