@@ -128,7 +128,6 @@ outputs:
         - aiohttp-cors
         - colorful
         - grpcio >=1.42.0
-        - memray          # [not win]
         - opencensus
         - prometheus_client >=0.7.1,<0.14.0
         - py-spy >=0.2.0
