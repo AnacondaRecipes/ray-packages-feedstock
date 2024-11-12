@@ -1,10 +1,11 @@
 #!/bin/bash
 set -xe
 
-#bazel clean --expunge
-#bazel shutdown
+bazel clean --expunge
+bazel shutdown
 
 echo build --copt=-w >> .bazelrc
+echo build --host_copt=-w >> .bazelrc
 
 if [[ "${target_platform}" == osx-* ]]; then
   # Pass down some environment variables. This is needed for https://github.com/ray-project/ray/blob/ray-2.3.0/bazel/BUILD.redis#L51.
