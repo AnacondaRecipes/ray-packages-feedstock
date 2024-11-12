@@ -4,8 +4,11 @@ set -xe
 bazel clean --expunge
 bazel shutdown
 
-echo build --copt=-w >> .bazelrc
-echo build --host_copt=-w >> .bazelrc
+if [[ "${target_platform}" == linux-aarch64 ]]; then
+  # Fix -Werror=stringop-overflow error
+  echo 'build --per_file_copt="external/upb/upbc/protoc-gen-upbdefs\.cc@-w"' >> .bazelrc
+  echo 'build --host_per_file_copt="external/upb/upbc/protoc-gen-upbdefs\.cc@-w"' >> .bazelrc
+fi
 
 if [[ "${target_platform}" == osx-* ]]; then
   # Pass down some environment variables. This is needed for https://github.com/ray-project/ray/blob/ray-2.3.0/bazel/BUILD.redis#L51.
