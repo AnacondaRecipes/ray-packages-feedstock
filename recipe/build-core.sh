@@ -1,8 +1,10 @@
 #!/bin/bash
 set -xe
 
-bazel clean --expunge
-bazel shutdown
+#bazel clean --expunge
+#bazel shutdown
+
+echo build --copt=-w >> .bazelrc
 
 if [[ "${target_platform}" == osx-* ]]; then
   # Pass down some environment variables. This is needed for https://github.com/ray-project/ray/blob/ray-2.3.0/bazel/BUILD.redis#L51.
@@ -37,8 +39,8 @@ echo build --linkopt=-static-libstdc++ >> .bazelrc
 echo build --linkopt=-lm >> .bazelrc
 
 # To debug, uncomment this
-# echo build --subcommands >> .bazelrc
-# echo build --verbose_failures >> .bazelrc
+echo build --subcommands >> .bazelrc
+echo build --verbose_failures >> .bazelrc
 
 # For some weird reason, ar is not picked up on linux-aarch64
 if [ $(uname -s) = "Linux" ] && [ ! -f "${BUILD_PREFIX}/bin/ar" ]; then
