@@ -20,7 +20,7 @@ source:
 
 build:
   number: 0
-  skip: true  # [py<39 or py>312]
+  skip: true  # [py<39 or py>=312]
   skip: true  # [(linux and (s390x or ppc64le))]
 
 outputs:
