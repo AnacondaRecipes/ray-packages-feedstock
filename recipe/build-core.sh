@@ -43,8 +43,8 @@ echo build --linkopt=-static-libstdc++ >> .bazelrc
 echo build --linkopt=-lm >> .bazelrc
 
 # To debug, uncomment this
-echo build --subcommands >> .bazelrc
-echo build --verbose_failures >> .bazelrc
+# echo build --subcommands >> .bazelrc
+# echo build --verbose_failures >> .bazelrc
 
 # For some weird reason, ar is not picked up on linux-aarch64
 if [ $(uname -s) = "Linux" ] && [ ! -f "${BUILD_PREFIX}/bin/ar" ]; then
