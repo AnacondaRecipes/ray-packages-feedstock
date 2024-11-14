@@ -8,6 +8,8 @@ if [[ "${target_platform}" == linux-aarch64 ]]; then
   # Fix -Werror=stringop-overflow error
   echo 'build --per_file_copt="external/upb/upbc/protoc-gen-upbdefs\.cc@-w"' >> .bazelrc
   echo 'build --host_per_file_copt="external/upb/upbc/protoc-gen-upbdefs\.cc@-w"' >> .bazelrc
+  # Fix memory error
+  echo 'build --jobs=2' >> .bazelrc
 fi
 
 if [[ "${target_platform}" == osx-* ]]; then
@@ -43,8 +45,8 @@ echo build --linkopt=-static-libstdc++ >> .bazelrc
 echo build --linkopt=-lm >> .bazelrc
 
 # To debug, uncomment this
-# echo build --subcommands >> .bazelrc
-# echo build --verbose_failures >> .bazelrc
+echo build --subcommands >> .bazelrc
+echo build --verbose_failures >> .bazelrc
 
 # For some weird reason, ar is not picked up on linux-aarch64
 if [ $(uname -s) = "Linux" ] && [ ! -f "${BUILD_PREFIX}/bin/ar" ]; then
