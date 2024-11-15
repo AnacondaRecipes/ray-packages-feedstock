@@ -24,6 +24,11 @@ rem different Python version) do not stumble on some after-effects.
 "%PYTHON%" setup.py clean --all
 
 rem Now shut down Bazel server, otherwise Windows would not allow moving a directory with it
+rem Path testing
+ls %SRC_DIR%\..\bazel-root
+ls %SRC_DIR%\..\b-o
+ls %SRC_DIR%\bazel-root
+ls %SRC_DIR%\b-o
 bazel "--output_user_root=%SRC_DIR%\..\bazel-root" "--output_base=%SRC_DIR%\..\b-o" clean --expunge
 bazel "--output_user_root=%SRC_DIR%\..\bazel-root" "--output_base=%SRC_DIR%\..\b-o" shutdown
 rd /s /q "%SRC_DIR%\..\b-o" "%SRC_DIR%\..\bazel-root"
