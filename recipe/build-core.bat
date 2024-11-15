@@ -11,6 +11,10 @@ echo ==========================================================
 echo calling pip install
 echo ==========================================================
 
+rem avoid multiple jobs causing file-access conflicts
+cat .bazelrc
+echo build --jobs=1 >> .bazelrc
+cat .bazelrc
 "%PYTHON%" -m pip install . --no-deps --no-build-isolation
 rem remember the return code
 set RETCODE=%ERRORLEVEL%
@@ -23,7 +27,5 @@ rem Now shut down Bazel server, otherwise Windows would not allow moving a direc
 bazel "--output_user_root=%SRC_DIR%\..\bazel-root" "--output_base=%SRC_DIR%\..\b-o" clean --expunge
 bazel "--output_user_root=%SRC_DIR%\..\bazel-root" "--output_base=%SRC_DIR%\..\b-o" shutdown
 rd /s /q "%SRC_DIR%\..\b-o" "%SRC_DIR%\..\bazel-root"
-rem Remove bazel cache
-rm -r "C:\Users\dev-admin\_bazel_dev-admin"
 rem Ignore "bazel shutdown" errors
 exit /b %RETCODE%
