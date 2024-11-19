@@ -21,7 +21,7 @@ source:
 build:
   number: 0
   # Python 3.12 is excluded because of gymnasium 0.28.1
-  skip: true  # [py<39 or py>=312]
+  skip: true  # [py<39 or py>312]
   skip: true  # [(linux and (s390x or ppc64le))]
 
 # The requirements/build&host sections of ray-core need to be replicated here.
