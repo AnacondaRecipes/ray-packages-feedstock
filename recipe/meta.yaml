@@ -78,21 +78,6 @@ outputs:
         # dummy test; actual tests are in subpackages
         - ray
 
-  - name: ray-all-cpp
-  build:
-    # Until ray-all & ray-cpp are available, skipping
-    skip: true
-  requirements:
-    host:
-    run:
-      - python
-      - {{ pin_subpackage('ray-all', exact=True) }}
-      - ray-cpp {{ version }}
-  test:
-    imports:
-      # dummy test; actual tests are in subpackages
-      - ray
-
   - name: ray-core
     script: build-core.sh  # [not win]
     script: build-core.bat  # [win]
