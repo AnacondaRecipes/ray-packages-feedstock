@@ -3,6 +3,9 @@ From: Mohamed Sentissi <msentissi@anaconda.com>
 Date: Thu, 7 Nov 2024 14:35:04 -0500
 Subject: [PATCH] Removed all dependencies from setup.py
 
+Co-authored-by: Kai Fricke <kai@anyscale.com>
+Co-authored-by: Jiajun Yao <jeromeyjj@gmail.com>
+Co-authored-by: Matti Picus <matti.picus@gmail.com>
 ---
  python/setup.py | 110 ++++--------------------------------------------
  1 file changed, 9 insertions(+), 101 deletions(-)

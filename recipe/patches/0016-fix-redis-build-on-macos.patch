@@ -3,6 +3,7 @@ From: Mohamed Sentissi <msentissi@anaconda.com>
 Date: Fri, 8 Nov 2024 10:15:12 -0500
 Subject: [PATCH] fix redis build on macos
 
+Co-authored-by: Jean-Christophe Morin <jcmorin@anaconda.com>
 ---
  bazel/BUILD.redis | 10 +++++-----
  1 file changed, 5 insertions(+), 5 deletions(-)

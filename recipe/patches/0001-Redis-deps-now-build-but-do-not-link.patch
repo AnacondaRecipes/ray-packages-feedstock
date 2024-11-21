@@ -3,6 +3,10 @@ From: Mohamed Sentissi <msentissi@anaconda.com>
 Date: Thu, 7 Nov 2024 15:49:16 -0500
 Subject: [PATCH] Redis deps now build but do not link
 
+Co-authored-by: Vasily Litvinov <vasilij.n.litvinov@intel.com>
+Co-authored-by: Gregory Shimansky <gregory.shimansky@intel.com>
+Co-authored-by: Jiajun Yao <jeromeyjj@gmail.com>
+Co-authored-by: H. Vetinari <h.vetinari@gmx.com>
 ---
  bazel/BUILD.redis                             | 13 +++-
  bazel/ray_deps_setup.bzl                      |  2 +-
