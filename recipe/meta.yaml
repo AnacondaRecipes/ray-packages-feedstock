@@ -152,8 +152,8 @@ outputs:
         - aiohttp >=3.7
         - aiohttp-cors
         - colorful
-        - grpcio >= 1.32.0  # [py<310]
-        - grpcio >= 1.42.0   # [py>=310]
+        - grpcio >=1.32.0  # [py<310]
+        - grpcio >=1.42.0   # [py>=310]
         - opencensus
         - prometheus_client >=0.7.1
         - py-spy >=0.2.0
@@ -294,8 +294,8 @@ outputs:
       run:
         - python
         - {{ pin_subpackage('ray-serve', exact=True) }}
-        - grpcio >= 1.32.0  # [py<310]
-        - grpcio >= 1.42.0  # [py>=310]
+        - grpcio >=1.32.0  # [py<310]
+        - grpcio >=1.42.0  # [py>=310]
     test:
       imports:
         - ray.serve
