@@ -69,13 +69,29 @@ outputs:
         # ray-client turned off for now, see below
         #- {{ pin_subpackage('ray-client', exact=True) }}
         - {{ pin_subpackage('ray-rllib', exact=True) }}
-        # ray-serve turned off for now, see below
-        #- {{ pin_subpackage('ray-serve', exact=True) }}
+        - {{ pin_subpackage('ray-serve', exact=True) }}
         - {{ pin_subpackage('ray-tune', exact=True) }}
+        #- {{ pin_subpackage('ray-adag', exact=True) }}
+        #- {{ pin_subpackage('ray-observability', exact=True) }}
     test:
       imports:
         # dummy test; actual tests are in subpackages
         - ray
+
+  - name: ray-all-cpp
+  build:
+    # Until ray-all & ray-cpp are available, skipping
+    skip: true
+  requirements:
+    host:
+    run:
+      - python
+      - {{ pin_subpackage('ray-all', exact=True) }}
+      - ray-cpp {{ version }}
+  test:
+    imports:
+      # dummy test; actual tests are in subpackages
+      - ray
 
   - name: ray-core
     script: build-core.sh  # [not win]
@@ -151,9 +167,10 @@ outputs:
         - aiohttp >=3.7
         - aiohttp-cors
         - colorful
-        - grpcio >=1.42.0
+        - grpcio >= 1.32.0  # [py<310]
+        - grpcio >= 1.42.0   # [py>=310]
         - opencensus
-        - prometheus_client >=0.7.1,<0.14.0
+        - prometheus_client >=0.7.1
         - py-spy >=0.2.0
         - pydantic !=2.0.*,!=2.1.*,!=2.2.*,!=2.3.*,!=2.4.*,<3
         - requests
@@ -209,9 +226,6 @@ outputs:
 
   - name: ray-client
     build:
-      # Holding off on ray-client. defaults does not contain the kubernetes package and there is a bit
-      # to bring in for this.
-      skip: true
     requirements:
       host:
         - python
@@ -268,8 +282,6 @@ outputs:
 
   - name: ray-serve
     build:
-      # starlette (starlette-base) and fastapi are missing in defaults
-      skip: True
       entry_points:
         - serve = ray.serve.scripts:cli
     requirements:
@@ -278,12 +290,27 @@ outputs:
       run:
         - python
         - {{ pin_subpackage('ray-default', exact=True) }}
-        - aiorwlock
         - requests
-        - uvicorn
-        # TODO: fastapi and starlette (starlette-base) are missing in defaults
-        #- fastapi
-        #- starlette
+        - uvicorn-standard
+        - starlette
+        - fastapi
+        - watchfiles
+    test:
+      imports:
+        - ray.serve
+
+  - name: ray-serve-grpc
+    build:
+      entry_points:
+        - serve = ray.serve.scripts:cli
+    requirements:
+      host:
+        - python
+      run:
+        - python
+        - {{ pin_subpackage('ray-serve', exact=True) }}
+        - grpcio >= 1.32.0  # [py<310]
+        - grpcio >= 1.42.0  # [py>=310]
     test:
       imports:
         - ray.serve
@@ -300,6 +327,7 @@ outputs:
         - {{ pin_subpackage('ray-default', exact=True) }}
         - pandas
         - pyarrow >=6.0.1
+        - requests
         - fsspec
         - tensorboardX >=1.9
     test:
@@ -318,17 +346,29 @@ outputs:
         - ray.train
 
   # the various ray[extra] installs, alphabetically
-  - name: ray-air
+  - name: ray-adag
     build:
-      # ray-serve is not yet available
+      # cupy-cuda12x is not available
       skip: True
     requirements:
       host:
         - python
       run:
         - python
+        - cupy-cuda12x  # [not osx]
+    test:
+      imports:
+        - ray.dag
+
+  - name: ray-air
+    build:
+    requirements:
+      host:
+        - python
+      run:
+        - python
         - {{ pin_subpackage('ray-data', exact=True) }}
-        #- {{ pin_subpackage('ray-serve', exact=True) }}
+        - {{ pin_subpackage('ray-serve', exact=True) }}
         - {{ pin_subpackage('ray-train', exact=True) }}
         - {{ pin_subpackage('ray-tune', exact=True) }}
     test:
@@ -337,7 +377,7 @@ outputs:
 
   - name: ray-observability
     build:
-      # None of the dependencies are on defaults.
+      # opentelemetry-exporter-otlp is missing from defaults
       skip: true
     requirements:
       host:
