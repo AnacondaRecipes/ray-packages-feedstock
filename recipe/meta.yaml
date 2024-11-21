@@ -82,7 +82,7 @@ outputs:
     script: build-core.sh  # [not win]
     script: build-core.bat  # [win]
     build:
-      skip: true  # [py<38]
+      skip: true  # [py<39]
     build:
       entry_points:
         - ray = ray.scripts.scripts:main
@@ -142,7 +142,7 @@ outputs:
 
   - name: ray-default
     build:
-      skip: true  # [py<38]
+      skip: true  # [py<39]
     requirements:
       host:
         - python
