@@ -61,7 +61,6 @@ outputs:
         - python
         # Skipped dependencies are commented out, see below for details
         #- {{ pin_subpackage('ray-adag', exact=True) }}
-        - {{ pin_subpackage('ray-client', exact=True) }}
         # autoscaler is completely disabled for now as it's missing a bunch of dependencies
         # and there's not much interest in adding them (yet).
         # autoscaler does not work on Windows, no point of building it; see below
