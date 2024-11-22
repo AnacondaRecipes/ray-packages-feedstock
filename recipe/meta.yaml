@@ -141,7 +141,8 @@ outputs:
         - ray._private.state
         - ray._private.worker
       commands:
-        - python -c "import ray; ray.init(include_dashboard=False)"
+        # shutdown() is called to clean state between tests
+        - python -c "import ray; ray.shutdown(); ray.init(include_dashboard=False)"
         - ray --help
 
   - name: ray-default
@@ -198,7 +199,8 @@ outputs:
       imports:
         - ray.dashboard
       commands:
-        - python -c "import ray; ray.init(include_dashboard=True)"
+        # shutdown() is called to clean state between tests
+        - python -c "import ray; ray.shutdown(); ray.init(include_dashboard=True)"
 
   - name: ray-debug
     requirements:
@@ -280,7 +282,15 @@ outputs:
         - python
         - {{ pin_subpackage('ray-default', exact=True) }}
         - requests
-        - uvicorn-standard
+        ## Uvicorn temporary fix ##
+        - httptools >=0.5.0
+        - python-dotenv >=0.13
+        - pyyaml >=5.1
+        - uvicorn
+        - uvloop >=0.14.0,!=0.15.0,!=0.15.1
+        - watchfiles >=0.13
+        - websockets >=10.4
+        ## Uvicorn temporary fix ##
         - starlette
         - fastapi
         - watchfiles
