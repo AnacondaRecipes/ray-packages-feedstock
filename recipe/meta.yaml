@@ -141,9 +141,10 @@ outputs:
         - ray._private.state
         - ray._private.worker
       commands:
-        # shutdown() is called to clean state between tests
-        - python -c "import ray; ray.shutdown(); ray.init(include_dashboard=False)"
+        # 'ray stop' sends a SIGTERM to ray processes to ensure a clean slate
         - ray --help
+        - ray start --verbose
+        - ray stop --verbose
 
   - name: ray-default
     build:
@@ -199,8 +200,10 @@ outputs:
       imports:
         - ray.dashboard
       commands:
-        # shutdown() is called to clean state between tests
-        - python -c "import ray; ray.shutdown(); ray.init(include_dashboard=True)"
+        # 'ray stop' sends a SIGTERM to ray processes to ensure a clean slate
+        - ray --help
+        - ray start --include-dashboard --verbose
+        - ray stop --verbose
 
   - name: ray-debug
     requirements:
