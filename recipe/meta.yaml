@@ -143,7 +143,7 @@ outputs:
       commands:
         # 'ray stop' sends a SIGTERM to ray processes to ensure a clean slate
         - ray --help
-        - ray start --verbose
+        - ray start --head --verbose
         - ray stop --verbose
 
   - name: ray-default
@@ -202,7 +202,7 @@ outputs:
       commands:
         # 'ray stop' sends a SIGTERM to ray processes to ensure a clean slate
         - ray --help
-        - ray start --include-dashboard --verbose
+        - ray start --head --include-dashboard --verbose
         - ray stop --verbose
 
   - name: ray-debug
