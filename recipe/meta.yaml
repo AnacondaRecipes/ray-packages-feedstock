@@ -202,7 +202,7 @@ outputs:
       commands:
         # 'ray stop' sends a SIGTERM to ray processes to ensure a clean slate
         - ray --help
-        - ray start --head --include-dashboard --verbose
+        - ray start --head --include-dashboard=true --verbose
         - ray stop --verbose
 
   - name: ray-debug
