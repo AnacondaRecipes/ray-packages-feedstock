@@ -1,9 +1,6 @@
 #!/bin/bash
 set -xe
 
-# Check max file limit on runners
-ulimit -n
-
 bazel clean --expunge
 bazel shutdown
 
@@ -16,6 +13,9 @@ if [[ "${target_platform}" == linux-aarch64 ]]; then
 fi
 
 if [[ "${target_platform}" == osx-* ]]; then
+  # Increase max file handles limit to prevent "too many file handles" error during testing
+  ulimit -Sn 200000
+
   # Pass down some environment variables. This is needed for https://github.com/ray-project/ray/blob/ray-2.3.0/bazel/BUILD.redis#L51.
   echo build --action_env=AR >> .bazelrc
   echo build --action_env=CC_FOR_BUILD >> .bazelrc
