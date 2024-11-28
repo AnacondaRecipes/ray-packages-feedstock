@@ -15,6 +15,7 @@ fi
 if [[ "${target_platform}" == osx-* ]]; then
   # Increase max file handles limit to prevent "too many file handles" error during testing
   ulimit -Sn 200000
+  ulimit -n
 
   # Pass down some environment variables. This is needed for https://github.com/ray-project/ray/blob/ray-2.3.0/bazel/BUILD.redis#L51.
   echo build --action_env=AR >> .bazelrc
