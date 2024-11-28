@@ -1,6 +1,9 @@
 #!/bin/bash
 set -xe
 
+# Check max file limit on runners
+ulimit -n
+
 bazel clean --expunge
 bazel shutdown
 
