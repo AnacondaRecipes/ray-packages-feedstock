@@ -342,7 +342,7 @@ outputs:
     test:
       imports:
         - ray.serve
-        commands:
+      commands:
         - launchctl limit # [osx]
         - sysctl -a | grep files # [osx]
         - ulimit -n # [osx]
