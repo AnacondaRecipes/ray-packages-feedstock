@@ -14,7 +14,8 @@ fi
 
 if [[ "${target_platform}" == osx-* ]]; then
   # Increase max file handles limit to prevent "too many file handles" error during testing
-  launchctl limit maxfiles 1048576 1048576
+  sudo launchctl limit maxfiles 256 unlimited
+  sudo launchctl limit maxfiles 128000 524288
   launchctl limit
   sysctl -a | grep files
   ulimit -n
