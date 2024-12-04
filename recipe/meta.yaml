@@ -142,7 +142,7 @@ outputs:
         - ray._private.worker
       commands:
         # 'ray stop' sends a SIGTERM to ray processes to ensure a clean slate
-        - ray --help
+        - ray --help                  # [not osx]
         # Skip on osx to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
         - ray start --head --verbose  # [not osx]
         - ray stop --verbose          # [not osx]
@@ -203,8 +203,8 @@ outputs:
         - ray.dashboard
       commands:
         # 'ray stop' sends a SIGTERM to ray processes to ensure a clean slate
-        - ray --help
         # Skip on osx to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
+        - ray --help                                            # [not osx]
         - ray start --head --include-dashboard=true --verbose   # [not osx]
         - ray stop --verbose                                    # [not osx]
 
@@ -260,7 +260,8 @@ outputs:
       commands:
         # some interaction with rich and the test runner in azure
         # xref https://github.com/Textualize/rich/issues/2411 ?
-        - python -c "import subprocess, os; os.environ['PYTHONIOENCODING']='utf-8'; subprocess.run(['rllib', '--help'], capture_output=True, check=True)"
+        # Skip on osx-arm64 to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
+        - python -c "import subprocess, os; os.environ['PYTHONIOENCODING']='utf-8'; subprocess.run(['rllib', '--help'], capture_output=True, check=True)" # [not (osx and arm64)]
 
   - name: ray-data
     requirements:
