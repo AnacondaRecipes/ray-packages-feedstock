@@ -13,13 +13,6 @@ if [[ "${target_platform}" == linux-aarch64 ]]; then
 fi
 
 if [[ "${target_platform}" == osx-* ]]; then
-  # Increase max file handles limit to prevent "too many file handles" error during testing
-  #sudo launchctl limit maxfiles 256 unlimited
-  #sudo launchctl limit maxfiles 128000 524288
-  launchctl limit
-  sysctl -a | grep files
-  ulimit -n
-
   # Pass down some environment variables. This is needed for https://github.com/ray-project/ray/blob/ray-2.3.0/bazel/BUILD.redis#L51.
   echo build --action_env=AR >> .bazelrc
   echo build --action_env=CC_FOR_BUILD >> .bazelrc
