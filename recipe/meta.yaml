@@ -142,8 +142,8 @@ outputs:
         - ray._private.worker
       commands:
         # 'ray stop' sends a SIGTERM to ray processes to ensure a clean slate
-        - ray --help                  # [not osx]
         # Skip on osx to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
+        - ray --help                  # [not osx]
         - ray start --head --verbose  # [not osx]
         - ray stop --verbose          # [not osx]
         
