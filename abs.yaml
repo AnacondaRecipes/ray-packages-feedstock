@@ -1,4 +1,0 @@
-extra_labels_for_os:
-  # Trying ventura to avoid test-time crashes
-  osx-arm64: [ventura]
-  osx-64: [ventura]

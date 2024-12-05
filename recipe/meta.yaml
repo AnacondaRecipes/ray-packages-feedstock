@@ -80,7 +80,8 @@ outputs:
     test:
       imports:
         # dummy test; actual tests are in subpackages
-        - ray
+        # Skip on osx-arm64 to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
+        - ray       # [not (osx and arm64)]
 
   - name: ray-core
     script: build-core.sh  # [not win]
@@ -134,12 +135,13 @@ outputs:
 
     test:
       imports:
-        - ray
-        - ray._raylet
-        - ray.actor
-        - ray.runtime_context
-        - ray._private.state
-        - ray._private.worker
+        # Skip on osx-arm64 to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
+        - ray                           # [not (osx and arm64)]
+        - ray._raylet                   # [not (osx and arm64)]
+        - ray.actor                     # [not (osx and arm64)]
+        - ray.runtime_context           # [not (osx and arm64)]
+        - ray._private.state            # [not (osx and arm64)]
+        - ray._private.worker           # [not (osx and arm64)]
       commands:
         # 'ray stop' sends a SIGTERM to ray processes to ensure a clean slate
         # Skip on osx to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
@@ -172,12 +174,13 @@ outputs:
 
     test:
       imports:
+      # Skip on osx-arm64 to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
         # ray-default is a convenience wrapper with no imports of its own
-        - ray
+        - ray                           # [not (osx and arm64)]
         # init-code seemingly depends on platform or other ambient things;
         # the following doesn't get triggered in CI, but was a problem in
         # https://github.com/conda-forge/ray-packages-feedstock/issues/16
-        - ray._private.metrics_agent
+        - ray._private.metrics_agent    # [not (osx and arm64)]
 
   - name: ray-dashboard
     build:
@@ -200,7 +203,7 @@ outputs:
         - async-timeout
     test:
       imports:
-        - ray.dashboard
+        - ray.dashboard                                         # [not (osx and arm64)]
       commands:
         # 'ray stop' sends a SIGTERM to ray processes to ensure a clean slate
         # Skip on osx to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
@@ -219,7 +222,7 @@ outputs:
     test:
       imports:
         # there doesn't appear to be a debug specific module
-        - ray
+        - ray                                               # [not (osx and arm64)]
 
   - name: ray-client
     build:
@@ -234,7 +237,7 @@ outputs:
     test:
       imports:
         # there doesn't appear to be a client module, not sure how to test this
-        - ray
+        - ray                                             # [not (osx and arm64)]
 
   - name: ray-rllib
     build:
@@ -256,7 +259,7 @@ outputs:
         - rich
     test:
       imports:
-        - ray.rllib
+        - ray.rllib                                       # [not (osx and arm64)]
       commands:
         # some interaction with rich and the test runner in azure
         # xref https://github.com/Textualize/rich/issues/2411 ?
@@ -276,7 +279,7 @@ outputs:
         - fsspec
     test:
       imports:
-        - ray.data
+        - ray.data                                      # [not (osx and arm64)]
 
   - name: ray-serve
     build:
@@ -295,7 +298,7 @@ outputs:
         - watchfiles
     test:
       imports:
-        - ray.serve
+        - ray.serve                                     # [not (osx and arm64)]
 
   - name: ray-serve-grpc
     build:
@@ -311,7 +314,7 @@ outputs:
         - grpcio >=1.42.0  # [py>=310]
     test:
       imports:
-        - ray.serve
+        - ray.serve                                     # [not (osx and arm64)]
 
   - name: ray-tune
     build:
@@ -330,7 +333,7 @@ outputs:
         - tensorboardX >=1.9
     test:
       imports:
-        - ray.tune
+        - ray.tune                                    # [not (osx and arm64)]
 
   - name: ray-train
     requirements:
@@ -341,7 +344,7 @@ outputs:
         - {{ pin_subpackage('ray-tune', exact=True) }}
     test:
       imports:
-        - ray.train
+        - ray.train                                   # [not (osx and arm64)]
 
   # the various ray[extra] installs, alphabetically
   - name: ray-adag
@@ -356,7 +359,7 @@ outputs:
         - cupy-cuda12x  # [not osx]
     test:
       imports:
-        - ray.dag
+        - ray.dag                                     # [not (osx and arm64)]
 
   - name: ray-air
     build:
@@ -371,7 +374,7 @@ outputs:
         - {{ pin_subpackage('ray-tune', exact=True) }}
     test:
       imports:
-        - ray.air
+        - ray.air                                 # [not (osx and arm64)]
 
   - name: ray-observability
     build:
