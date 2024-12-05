@@ -70,7 +70,7 @@ outputs:
         - {{ pin_subpackage('ray-default', exact=True) }}
         - {{ pin_subpackage('ray-dashboard', exact=True) }}
         - {{ pin_subpackage('ray-debug', exact=True) }}
-        #- {{ pin_subpackage('ray-observability', exact=True) }}
+        - {{ pin_subpackage('ray-observability', exact=True) }}
         - {{ pin_subpackage('ray-rllib', exact=True) }}
         - {{ pin_subpackage('ray-serve', exact=True) }}
         - {{ pin_subpackage('ray-serve-grpc', exact=True) }}
