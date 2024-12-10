@@ -21,7 +21,7 @@ source:
 build:
   number: 0
   skip: true  # [py<39 or py>312]
-  skip: true  # [(linux and (s390x or ppc64le))]
+  skip: true  # [linux and s390x]
 
 # The requirements/build&host sections of ray-core need to be replicated here.
 # It is not clear why at this time but not having them here causes conda build to behave non-deterministically and crash. 
