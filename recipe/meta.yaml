@@ -1,4 +1,4 @@
-{% set version = "2.6.3" %}
+{% set version = "2.37.0" %}
 
 package:
   name: ray-packages
@@ -6,7 +6,7 @@ package:
 
 source:
   url: https://github.com/ray-project/ray/archive/ray-{{ version }}.tar.gz
-  sha256: 8cb87bc70fdc00c8c028906280e27f5139d6c7ebcee30f88f92beccfde296338
+  sha256: dcf92302ba813080003f33cb874912ee950331f2348822a2b615eb46f9baf0f8
   patches:
     - patches/0001-Redis-deps-now-build-but-do-not-link.patch
     - patches/0002-Disable-making-entry-scripts.patch
@@ -16,22 +16,22 @@ source:
     - patches/0015-Don-t-build-redis-with-jemalloc-on-linux-aarch64.patch  # [linux and aarch64]
     - patches/0016-fix-redis-build-on-macos.patch  # [osx]
     - patches/0017-Don-t-use-Xcode-on-macOS.patch
+    - patches/0018-Remove-runtime-agent-dependencies.patch
 
 build:
-  number: 2
-  skip: true  # [py<38 or py>=312]
-  # skipping architectures that do not yet have bazel, so only build for linux64 & win64.
-  # skipping osx and aarch64 for now, as there are complicated bazel errors with external redis (symbols, dependant libraries, and objects).
-  skip: true  # [(linux and (s390x or ppc64le))]
+  number: 0
+  skip: true  # [py<39 or py>312]
+  skip: true  # [linux and s390x]
 
-# Need these up here to handle them properly.
+# The requirements/build&host sections of ray-core need to be replicated here.
+# It is not clear why at this time but not having them here causes conda build to behave non-deterministically and crash. 
 requirements:
   build:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - patch          # [not win]
     - m2-patch       # [win]
-    - bazel =5.4.1
+    - bazel =6.5.0
     - curl
     - git  # [not win]
     - m2-make   # [win]
@@ -40,6 +40,7 @@ requirements:
     - patchelf  # [linux]
     - python  
     - sysroot_linux-64 2.17  # [linux and x86_64]
+    - psutil
   host:
     - python
     - pip
@@ -47,6 +48,7 @@ requirements:
     - pkg-config  # [osx]
     - setuptools
     - wheel
+    - openjdk =11
 
 outputs:
   - name: ray-all
@@ -57,29 +59,35 @@ outputs:
       host:
       run:
         - python
-        - {{ pin_subpackage('ray-default', exact=True) }}
+        # Skipped dependencies are commented out, see below for details
+        #- {{ pin_subpackage('ray-adag', exact=True) }}
         # autoscaler is completely disabled for now as it's missing a bunch of dependencies
         # and there's not much interest in adding them (yet).
         # autoscaler does not work on Windows, no point of building it; see below
-        # - {{ pin_subpackage('ray-autoscaler', exact=True) }}  # [not win]
+        #- {{ pin_subpackage('ray-autoscaler', exact=True) }}  # [not win]
+        - {{ pin_subpackage('ray-client', exact=True) }}
+        - {{ pin_subpackage('ray-data', exact=True) }}
+        - {{ pin_subpackage('ray-default', exact=True) }}
         - {{ pin_subpackage('ray-dashboard', exact=True) }}
         - {{ pin_subpackage('ray-debug', exact=True) }}
-        # ray-client turned off for now, see below
-        #- {{ pin_subpackage('ray-client', exact=True) }}
+        - {{ pin_subpackage('ray-observability', exact=True) }}
         - {{ pin_subpackage('ray-rllib', exact=True) }}
-        # ray-serve turned off for now, see below
-        #- {{ pin_subpackage('ray-serve', exact=True) }}
+        - {{ pin_subpackage('ray-serve', exact=True) }}
+        - {{ pin_subpackage('ray-serve-grpc', exact=True) }}
         - {{ pin_subpackage('ray-tune', exact=True) }}
+        - {{ pin_subpackage('ray-train', exact=True) }}
+
     test:
       imports:
         # dummy test; actual tests are in subpackages
-        - ray
+        # Skip on osx-arm64 to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
+        - ray       # [not (osx and arm64)]
 
   - name: ray-core
     script: build-core.sh  # [not win]
     script: build-core.bat  # [win]
     build:
-      skip: true  # [py<38]
+      skip: true  # [py<39]
     build:
       entry_points:
         - ray = ray.scripts.scripts:main
@@ -89,62 +97,62 @@ outputs:
         - {{ compiler('cxx') }}
         - patch          # [not win]
         - m2-patch       # [win]
-        - bazel =5.4.1
+        - bazel =6.5.0
         - curl
         - git  # [not win]
         - m2-make   # [win]
         - make      # [not win]
         - pkg-config  # [osx or (linux and aarch64)]
         - patchelf  # [linux]
-        - psutil
-        - python
+        - python  
         - sysroot_linux-64 2.17  # [linux and x86_64]
+        - psutil
       host:
         - python
-        - openjdk =11
         - pip
-        - pkg-config  # [osx]
         - cython >=0.29.32
+        - pkg-config  # [osx]
         - setuptools
         - wheel
+        - openjdk =11
       run:
         - python
-        - aiosignal
         - click >=7.0
-        - colorama
         - filelock
-        - frozenlist
-        - grpcio >=1.42,<1.49
         - jsonschema
         - msgpack-python >=1.0.0,<2.0.0
-        - numpy >=1.16    # [py<39]
-        - numpy >=1.19.3  # [py>=39]
         - packaging
         - protobuf >=3.15.3,!=3.19.5
-        - psutil
         - pyyaml
+        - aiosignal
+        - frozenlist
         - requests
+        # Named "Third-party Install" Upstream
+        - psutil
         - setproctitle ==1.2.2
-        # Needed because ray imports pkg_resources in multiple places.
-        # Upstream deosn't declare it... Please remove as soon as it's not required
-        # anymore (for example in the latest ray package).
-        - setuptools
+        - colorama
+        - aiohttp
 
     test:
       imports:
-        - ray
-        - ray._raylet
-        - ray.actor
-        - ray.runtime_context
-        - ray._private.state
-        - ray._private.worker
+        # Skip on osx-arm64 to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
+        - ray                           # [not (osx and arm64)]
+        - ray._raylet                   # [not (osx and arm64)]
+        - ray.actor                     # [not (osx and arm64)]
+        - ray.runtime_context           # [not (osx and arm64)]
+        - ray._private.state            # [not (osx and arm64)]
+        - ray._private.worker           # [not (osx and arm64)]
       commands:
-        - python -c "import ray; ray.init(include_dashboard=False)"
-        - ray --help
+        # 'ray stop' sends a SIGTERM to ray processes to ensure a clean slate
+        # Skip on osx to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
+        - ray --help                  # [not osx]
+        - ray start --head --verbose  # [not osx]
+        - ray stop --verbose          # [not osx]
+        
 
   - name: ray-default
     build:
-      skip: true  # [py<38]
+      skip: true  # [py<39]
     requirements:
       host:
         - python
@@ -154,24 +162,25 @@ outputs:
         - aiohttp >=3.7
         - aiohttp-cors
         - colorful
-        - gpustat >=1.0.0
+        - grpcio >=1.32.0  # [py<310]
+        - grpcio >=1.42.0   # [py>=310]
         - opencensus
-        - prometheus_client >=0.7.1,<0.14.0
-        - pydantic <2.0
-        - jsonschema
+        - prometheus_client >=0.7.1
+        - py-spy >=0.2.0
+        - pydantic !=2.0.*,!=2.1.*,!=2.2.*,!=2.3.*,!=2.4.*,<3
         - requests
         - smart_open
-        - py-spy >=0.2.0
-        - virtualenv >=20.0.24,<20.21.1
+        - virtualenv >=20.0.24,!=20.21.1
 
     test:
       imports:
+      # Skip on osx-arm64 to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
         # ray-default is a convenience wrapper with no imports of its own
-        - ray
+        - ray                           # [not (osx and arm64)]
         # init-code seemingly depends on platform or other ambient things;
         # the following doesn't get triggered in CI, but was a problem in
         # https://github.com/conda-forge/ray-packages-feedstock/issues/16
-        - ray._private.metrics_agent
+        - ray._private.metrics_agent    # [not (osx and arm64)]
 
   - name: ray-dashboard
     build:
@@ -185,7 +194,7 @@ outputs:
         - cp -R ./build $SP_DIR/ray/dashboard/client/build  # [not win]
     requirements:
       host:
-        - nodejs <18
+        - nodejs
         - python
       run:
         - python
@@ -194,9 +203,13 @@ outputs:
         - async-timeout
     test:
       imports:
-        - ray.dashboard
+        - ray.dashboard                                         # [not (osx and arm64)]
       commands:
-        - python -c "import ray; ray.init(include_dashboard=True)"
+        # 'ray stop' sends a SIGTERM to ray processes to ensure a clean slate
+        # Skip on osx to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
+        - ray --help                                            # [not osx]
+        - ray start --head --include-dashboard=true --verbose   # [not osx]
+        - ray stop --verbose                                    # [not osx]
 
   - name: ray-debug
     requirements:
@@ -209,13 +222,10 @@ outputs:
     test:
       imports:
         # there doesn't appear to be a debug specific module
-        - ray
+        - ray                                               # [not (osx and arm64)]
 
   - name: ray-client
     build:
-      # Holding off on ray-client. defaults does not contain the kubernetes package and there is a bit
-      # to bring in for this.
-      skip: true
     requirements:
       host:
         - python
@@ -227,7 +237,7 @@ outputs:
     test:
       imports:
         # there doesn't appear to be a client module, not sure how to test this
-        - ray
+        - ray                                             # [not (osx and arm64)]
 
   - name: ray-rllib
     build:
@@ -240,7 +250,7 @@ outputs:
         - python
         - {{ pin_subpackage('ray-tune', exact=True) }}
         - dm-tree
-        - gymnasium ==0.26.3
+        - gymnasium ==0.28.1
         - lz4
         - pyyaml
         - scikit-image
@@ -249,11 +259,12 @@ outputs:
         - rich
     test:
       imports:
-        - ray.rllib
+        - ray.rllib                                       # [not (osx and arm64)]
       commands:
         # some interaction with rich and the test runner in azure
         # xref https://github.com/Textualize/rich/issues/2411 ?
-        - python -c "import subprocess, os; os.environ['PYTHONIOENCODING']='utf-8'; subprocess.run(['rllib', '--help'], capture_output=True, check=True)"
+        # Skip on osx-arm64 to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
+        - python -c "import subprocess, os; os.environ['PYTHONIOENCODING']='utf-8'; subprocess.run(['rllib', '--help'], capture_output=True, check=True)" # [not (osx and arm64)]
 
   - name: ray-data
     requirements:
@@ -268,12 +279,10 @@ outputs:
         - fsspec
     test:
       imports:
-        - ray.data
+        - ray.data                                      # [not (osx and arm64)]
 
   - name: ray-serve
     build:
-      # starlette (starlette-base) and fastapi are missing in defaults
-      skip: True
       entry_points:
         - serve = ray.serve.scripts:cli
     requirements:
@@ -282,15 +291,30 @@ outputs:
       run:
         - python
         - {{ pin_subpackage('ray-default', exact=True) }}
-        - aiorwlock
         - requests
-        - uvicorn
-        # TODO: fastapi and starlette (starlette-base) are missing in defaults
-        #- fastapi
-        #- starlette
+        - uvicorn-standard
+        - starlette
+        - fastapi
+        - watchfiles
     test:
       imports:
-        - ray.serve
+        - ray.serve                                     # [not (osx and arm64)]
+
+  - name: ray-serve-grpc
+    build:
+      entry_points:
+        - serve = ray.serve.scripts:cli
+    requirements:
+      host:
+        - python
+      run:
+        - python
+        - {{ pin_subpackage('ray-serve', exact=True) }}
+        - grpcio >=1.32.0  # [py<310]
+        - grpcio >=1.42.0  # [py>=310]
+    test:
+      imports:
+        - ray.serve                                     # [not (osx and arm64)]
 
   - name: ray-tune
     build:
@@ -305,10 +329,11 @@ outputs:
         - pandas
         - pyarrow >=6.0.1
         - requests
+        - fsspec
         - tensorboardX >=1.9
     test:
       imports:
-        - ray.tune
+        - ray.tune                                    # [not (osx and arm64)]
 
   - name: ray-train
     requirements:
@@ -319,30 +344,40 @@ outputs:
         - {{ pin_subpackage('ray-tune', exact=True) }}
     test:
       imports:
-        - ray.train
+        - ray.train                                   # [not (osx and arm64)]
 
   # the various ray[extra] installs, alphabetically
-  - name: ray-air
+  - name: ray-adag
     build:
-      # ray-serve is not yet available
+      # cupy-cuda12x is not available
       skip: True
     requirements:
       host:
         - python
       run:
         - python
+        - cupy-cuda12x  # [not osx]
+    test:
+      imports:
+        - ray.dag                                     # [not (osx and arm64)]
+
+  - name: ray-air
+    build:
+    requirements:
+      host:
+        - python
+      run:
+        - python
         - {{ pin_subpackage('ray-data', exact=True) }}
-        #- {{ pin_subpackage('ray-serve', exact=True) }}
+        - {{ pin_subpackage('ray-serve', exact=True) }}
         - {{ pin_subpackage('ray-train', exact=True) }}
         - {{ pin_subpackage('ray-tune', exact=True) }}
     test:
       imports:
-        - ray.air
+        - ray.air                                 # [not (osx and arm64)]
 
   - name: ray-observability
     build:
-      # None of the dependencies are on defaults.
-      skip: true
     requirements:
       host:
         - python

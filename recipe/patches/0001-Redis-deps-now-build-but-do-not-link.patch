@@ -1,27 +1,27 @@
-From 5872db3888c7fa3f4352464ae9520b7914bc39c3 Mon Sep 17 00:00:00 2001
-From: Vasily Litvinov <vasilij.n.litvinov@intel.com>
-Date: Fri, 3 Dec 2021 10:46:36 -0800
-Subject: [PATCH 1/5] Redis deps now build but do not link
+From eed3c457b01447e2c7f226006070a7e9eb454896 Mon Sep 17 00:00:00 2001
+From: Mohamed Sentissi <msentissi@anaconda.com>
+Date: Thu, 7 Nov 2024 15:49:16 -0500
+Subject: [PATCH] Redis deps now build but do not link
 
-Signed-off-by: Vasily Litvinov <vasilij.n.litvinov@intel.com>
-Signed-off-by: Gregory Shimansky <gregory.shimansky@intel.com>
-Signed-off-by: Jiajun Yao <jeromeyjj@gmail.com>
-Signed-off-by: H. Vetinari <h.vetinari@gmx.com>
+Co-authored-by: Vasily Litvinov <vasilij.n.litvinov@intel.com>
+Co-authored-by: Gregory Shimansky <gregory.shimansky@intel.com>
+Co-authored-by: Jiajun Yao <jeromeyjj@gmail.com>
+Co-authored-by: H. Vetinari <h.vetinari@gmx.com>
 ---
- bazel/BUILD.redis                             | 13 ++-
+ bazel/BUILD.redis                             | 13 +++-
  bazel/ray_deps_setup.bzl                      |  2 +-
- ...01-keep-redis-quiet-and-override-AR.patch} | 79 ++++++++++++++++---
- 3 files changed, 81 insertions(+), 13 deletions(-)
- rename thirdparty/patches/{redis-quiet.patch => 0001-keep-redis-quiet-and-override-AR.patch} (53%)
+ ...01-keep-redis-quiet-and-override-AR.patch} | 64 +++++++++++++++++--
+ 3 files changed, 71 insertions(+), 8 deletions(-)
+ rename thirdparty/patches/{redis-quiet.patch => 0001-keep-redis-quiet-and-override-AR.patch} (61%)
 
 diff --git a/bazel/BUILD.redis b/bazel/BUILD.redis
-index 9edccf5780..60e070028f 100644
+index 68e06a7..818ab93 100644
 --- a/bazel/BUILD.redis
 +++ b/bazel/BUILD.redis
 @@ -42,13 +42,17 @@ make(
  
  genrule_cmd = select({
-     "@bazel_tools//src/conditions:darwin": """
+     "@platforms//os:osx": """
 -        unset CC LDFLAGS CXX CXXFLAGS
 +        export CC=$(CC)
 +        export CFLAGS=$(CC_FLAGS)
@@ -50,23 +50,23 @@ index 9edccf5780..60e070028f 100644
      tags = ["local"],
  )
 diff --git a/bazel/ray_deps_setup.bzl b/bazel/ray_deps_setup.bzl
-index ce5bd7f23a..33612cfbb4 100644
+index 787a4be..bc9f737 100644
 --- a/bazel/ray_deps_setup.bzl
 +++ b/bazel/ray_deps_setup.bzl
-@@ -102,7 +102,7 @@ def ray_deps_setup():
-         url = "https://github.com/redis/redis/archive/refs/tags/7.0.8.tar.gz",
-         sha256 = "0e439cbc19f6db5a4c63d355519ab73bf6ac2ecd47df806c14b19564b3d0c593",
+@@ -110,7 +110,7 @@ def ray_deps_setup():
+         url = "https://github.com/redis/redis/archive/refs/tags/7.2.3.tar.gz",
+         sha256 = "afd656dbc18a886f9a1cc08a550bf5eb89de0d431e713eba3ae243391fb008a6",
          patches = [
 -            "@com_github_ray_project_ray//thirdparty/patches:redis-quiet.patch",
 +            "@com_github_ray_project_ray//thirdparty/patches:0001-keep-redis-quiet-and-override-AR.patch",
          ],
-         workspace_file_content = 'workspace(name = "com_github_antirez_redis")'
+         workspace_file_content = 'workspace(name = "com_github_antirez_redis")',
      )
 diff --git a/thirdparty/patches/redis-quiet.patch b/thirdparty/patches/0001-keep-redis-quiet-and-override-AR.patch
-similarity index 53%
+similarity index 61%
 rename from thirdparty/patches/redis-quiet.patch
 rename to thirdparty/patches/0001-keep-redis-quiet-and-override-AR.patch
-index d034387596..27c01310ed 100644
+index 3a5449d..b472f7b 100644
 --- a/thirdparty/patches/redis-quiet.patch
 +++ b/thirdparty/patches/0001-keep-redis-quiet-and-override-AR.patch
 @@ -1,14 +1,45 @@
@@ -90,11 +90,10 @@ index d034387596..27c01310ed 100644
 + 3 files changed, 20 insertions(+), 15 deletions(-)
 +
  diff --git a/deps/Makefile b/deps/Makefile
--index 8592e17..0c13eea 100644
+-index 3bf0363d5..ea5d12cd4 100644
 +index 8592e1766..8089693e0 100644
  --- a/deps/Makefile
  +++ b/deps/Makefile
--@@ -49,19 +49,19 @@ ifeq ($(BUILD_TLS),yes)
 +@@ -11,6 +11,10 @@ BINCOLOR="\033[37;1m"
 + MAKECOLOR="\033[32;1m"
 + ENDCOLOR="\033[0m"
@@ -106,69 +105,52 @@ index d034387596..27c01310ed 100644
 + default:
 + 	@echo "Explicit target required"
 + 
-+@@ -49,19 +53,19 @@ ifeq ($(BUILD_TLS),yes)
+ @@ -51,25 +51,25 @@ ifneq (,$(filter $(BUILD_TLS),yes module))
   endif
-  
+ 
   hiredis: .make-prerequisites
  -	@printf '%b %b\n' $(MAKECOLOR)MAKE$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR)
 +-	cd hiredis && $(MAKE) static $(HIREDIS_MAKE_FLAGS)
  +	#@printf '%b %b\n' $(MAKECOLOR)MAKE$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR)
 - 	cd hiredis && $(MAKE) static $(HIREDIS_MAKE_FLAGS)
 ++	cd hiredis && $(MAKE) static $(HIREDIS_MAKE_FLAGS) AR="$(AR)"
-  
+ 
   .PHONY: hiredis
-  
-@@ -25,16 +56,22 @@ index 8592e17..0c13eea 100644
-  	cd hdr_histogram && $(MAKE)
-  
-  .PHONY: hdr_histogram
--@@ -85,7 +85,7 @@ AR=ar
-- ARFLAGS=rc
-+@@ -81,12 +85,10 @@ endif
-+ # lua's Makefile defines AR="ar rcu", which is unusual, and makes it more
-+ # challenging to cross-compile lua (and redis).  These defines make it easier
-+ # to fit redis into cross-compilation environments, which typically set AR.
-+-AR=ar
-+-ARFLAGS=rc
-  
+ 
+@@ -37,8 +68,9 @@ index 3bf0363d5..ea5d12cd4 100644
+ 
   lua: .make-prerequisites
  -	@printf '%b %b\n' $(MAKECOLOR)MAKE$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR)
 +-	cd lua/src && $(MAKE) all CFLAGS="$(LUA_CFLAGS)" MYLDFLAGS="$(LUA_LDFLAGS)" AR="$(AR) $(ARFLAGS)"
  +	#@printf '%b %b\n' $(MAKECOLOR)MAKE$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR)
 - 	cd lua/src && $(MAKE) all CFLAGS="$(LUA_CFLAGS)" MYLDFLAGS="$(LUA_LDFLAGS)" AR="$(AR) $(ARFLAGS)"
 ++	cd lua/src && $(MAKE) all CFLAGS="$(LUA_CFLAGS)" MYLDFLAGS="$(LUA_LDFLAGS)" AR="$(AR) $(ARFLAGS)" RANLIB="$(RANLIB)"
-  
+ 
   .PHONY: lua
--@@ -98,7 +98,7 @@ JEMALLOC_CONFIGURE_OPTS += --host=$(DEB_HOST_GNU_TYPE)
-+ 
-+@@ -98,7 +100,7 @@ JEMALLOC_CONFIGURE_OPTS += --host=$(DEB_HOST_GNU_TYPE)
-  endif
-  
-  jemalloc: .make-prerequisites
-@@ -44,7 +81,7 @@ index 8592e17..0c13eea 100644
-  	cd jemalloc && $(MAKE) CFLAGS="$(JEMALLOC_CFLAGS)" LDFLAGS="$(JEMALLOC_LDFLAGS)" lib/libjemalloc.a
-  
+ @@ -111,7 +111,7 @@ JEMALLOC_CONFIGURE_OPTS += --host=$(DEB_HOST_GNU_TYPE)
+@@ -51,7 +83,7 @@ index 3bf0363d5..ea5d12cd4 100644
+  	cd jemalloc && $(MAKE) lib/libjemalloc.a
+ 
  diff --git a/deps/jemalloc/Makefile.in b/deps/jemalloc/Makefile.in
--index 7128b00..da8e429 100644
+-index 1193cd859..140995eb5 100644
 +index 7128b007e..da8e4299f 100644
  --- a/deps/jemalloc/Makefile.in
  +++ b/deps/jemalloc/Makefile.in
- @@ -406,7 +406,7 @@ $(objroot)include/jemalloc/internal/private_namespace_jet.gen.h: $(C_JET_SYMS)
-@@ -57,7 +94,7 @@ index 7128b00..da8e429 100644
+ @@ -496,7 +496,7 @@ $(objroot)include/jemalloc/internal/private_namespace_jet.gen.h: $(C_JET_SYMS)
+@@ -64,7 +96,7 @@ index 1193cd859..140995eb5 100644
   $(CPP_OBJS) $(CPP_PIC_OBJS) $(TESTS_CPP_OBJS): %.$(O):
   	@mkdir -p $(@D)
  diff --git a/src/Makefile b/src/Makefile
--index e4f7d90..704d4b4 100644
+-index ecbd2753d..737a14777 100644
 +index e4f7d9068..82b6f7cca 100644
  --- a/src/Makefile
  +++ b/src/Makefile
- @@ -115,7 +115,7 @@ endif
-@@ -69,7 +106,17 @@ index e4f7d90..704d4b4 100644
+ @@ -116,7 +116,7 @@ endif
+@@ -76,6 +108,16 @@ index ecbd2753d..737a14777 100644
   FINAL_LDFLAGS=$(LDFLAGS) $(REDIS_LDFLAGS) $(DEBUG)
   FINAL_LIBS=-lm
   DEBUG=-g -ggdb
--@@ -326,9 +326,9 @@ REDIS_CHECK_AOF_NAME=redis-check-aof$(PROG_SUFFIX)
-+@@ -307,6 +307,9 @@ BINCOLOR="\033[37;1m"
++@@ -328,6 +328,9 @@ BINCOLOR="\033[37;1m"
 + MAKECOLOR="\033[32;1m"
 + ENDCOLOR="\033[0m"
 + 
@@ -178,15 +160,14 @@ index d034387596..27c01310ed 100644
 + ifndef V
 + QUIET_CC = @printf '    %b %b\n' $(CCCOLOR)CC$(ENDCOLOR) $(SRCCOLOR)$@$(ENDCOLOR) 1>&2;
 + QUIET_GEN = @printf '    %b %b\n' $(CCCOLOR)GEN$(ENDCOLOR) $(SRCCOLOR)$@$(ENDCOLOR) 1>&2;
-+@@ -326,9 +329,9 @@ REDIS_CHECK_AOF_NAME=redis-check-aof$(PROG_SUFFIX)
+ @@ -355,9 +355,9 @@ REDIS_CHECK_AOF_NAME=redis-check-aof$(PROG_SUFFIX)
   ALL_SOURCES=$(sort $(patsubst %.o,%.c,$(REDIS_SERVER_OBJ) $(REDIS_CLI_OBJ) $(REDIS_BENCHMARK_OBJ)))
-  
-  all: $(REDIS_SERVER_NAME) $(REDIS_SENTINEL_NAME) $(REDIS_CLI_NAME) $(REDIS_BENCHMARK_NAME) $(REDIS_CHECK_RDB_NAME) $(REDIS_CHECK_AOF_NAME)
-@@ -82,3 +129,15 @@ index e4f7d90..704d4b4 100644
-  
+ 
+@@ -89,3 +131,15 @@ index ecbd2753d..737a14777 100644
+ 
   Makefile.dep:
   	-$(REDIS_CC) -MM $(ALL_SOURCES) > Makefile.dep 2> /dev/null || true
-+@@ -352,7 +355,7 @@ persist-settings: distclean
++@@ -381,7 +384,7 @@ persist-settings: distclean
 + 	echo REDIS_LDFLAGS=$(REDIS_LDFLAGS) >> .make-settings
 + 	echo PREV_FINAL_CFLAGS=$(FINAL_CFLAGS) >> .make-settings
 + 	echo PREV_FINAL_LDFLAGS=$(FINAL_LDFLAGS) >> .make-settings
@@ -198,3 +179,6 @@ index d034387596..27c01310ed 100644
 +-- 
 +2.38.1.windows.1
 +
+-- 
+2.45.2
+
