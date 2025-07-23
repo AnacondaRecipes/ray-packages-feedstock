@@ -7,10 +7,10 @@ Subject: [PATCH] Don't build redis with jemalloc on linux-aarch64 to avoid a
 LINK redis-server
 defrag.o:defrag.c:function activeDefragAlloc: error: undefined reference to 'je_get_defrag_hint'
 ---
- bazel/BUILD.redis | 1 +
+ bazel/redis.BUILD | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/bazel/BUILD.redis b/bazel/BUILD.redis
+diff --git a/bazel/redis.BUILD b/bazel/redis.BUILD
 index 9edccf5780..d0087f8531 100644
 --- a/bazel/BUILD.redis
 +++ b/bazel/BUILD.redis

@@ -8,7 +8,7 @@ Co-authored-by: Gregory Shimansky <gregory.shimansky@intel.com>
 Co-authored-by: Jiajun Yao <jeromeyjj@gmail.com>
 Co-authored-by: H. Vetinari <h.vetinari@gmx.com>
 ---
- bazel/BUILD.redis                             | 13 +++-
+ bazel/redis.BUILD                             | 13 +++-
  bazel/ray_deps_setup.bzl                      |  2 +-
  ...01-keep-redis-quiet-and-override-AR.patch} | 64 +++++++++++++++++--
  3 files changed, 71 insertions(+), 8 deletions(-)
@@ -16,8 +16,8 @@ Co-authored-by: H. Vetinari <h.vetinari@gmx.com>
 
 diff --git a/bazel/BUILD.redis b/bazel/BUILD.redis
 index 68e06a7..818ab93 100644
---- a/bazel/BUILD.redis
-+++ b/bazel/BUILD.redis
+--- a/bazel/redis.BUILD
++++ b/bazel/redis.BUILD
 @@ -42,13 +42,17 @@ make(
  
  genrule_cmd = select({

@@ -8,30 +8,28 @@ Subject: [PATCH] Remove runtime agent dependencies
  1 file changed, 14 deletions(-)
 
 diff --git a/python/setup.py b/python/setup.py
-index 3898eb6..3e21bb7 100644
+index 30f448740b..6c45afe990 100644
 --- a/python/setup.py
 +++ b/python/setup.py
-@@ -542,20 +542,6 @@ def build(build_python, build_java, build_cpp):
+@@ -482,21 +482,6 @@ def build(build_python, build_java, build_cpp):
              env=dict(os.environ, CC="gcc"),
          )
  
--    # runtime env agent dependenceis
--    runtime_env_agent_pip_packages = ["aiohttp"]
--    subprocess.check_call(
--        [
--            sys.executable,
--            "-m",
--            "pip",
--            "install",
--            "-q",
--            "--target=" + os.path.join(ROOT_DIR, RUNTIME_ENV_AGENT_THIRDPARTY_SUBDIR),
--        ]
--        + runtime_env_agent_pip_packages
--    )
+-        # runtime env agent dependenceis
+-        runtime_env_agent_pip_packages = ["aiohttp"]
+-        subprocess.check_call(
+-            [
+-                sys.executable,
+-                "-m",
+-                "pip",
+-                "install",
+-                "-q",
+-                "--target="
+-                + os.path.join(ROOT_DIR, RUNTIME_ENV_AGENT_THIRDPARTY_SUBDIR),
+-            ]
+-            + runtime_env_agent_pip_packages
+-        )
 -
      bazel_flags = ["--verbose_failures"]
      if BAZEL_ARGS:
          bazel_flags.extend(shlex.split(BAZEL_ARGS))
--- 
-2.45.2
-
