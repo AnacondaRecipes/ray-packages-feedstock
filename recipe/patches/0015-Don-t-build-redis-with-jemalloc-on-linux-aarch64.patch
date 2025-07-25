@@ -12,8 +12,8 @@ defrag.o:defrag.c:function activeDefragAlloc: error: undefined reference to 'je_
 
 diff --git a/bazel/redis.BUILD b/bazel/redis.BUILD
 index bdb69b7a39..3cf8b4a017 100644
---- a/bazel/BUILD.redis
-+++ b/bazel/BUILD.redis
+--- a/bazel/redis.BUILD
++++ b/bazel/redis.BUILD
 @@ -21,6 +21,7 @@ make(
      name = "redis",
      args = [
