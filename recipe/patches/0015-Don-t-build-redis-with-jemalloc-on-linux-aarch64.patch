@@ -11,7 +11,7 @@ defrag.o:defrag.c:function activeDefragAlloc: error: undefined reference to 'je_
  1 file changed, 1 insertion(+)
 
 diff --git a/bazel/redis.BUILD b/bazel/redis.BUILD
-index 9edccf5780..d0087f8531 100644
+index bdb69b7a39..3cf8b4a017 100644
 --- a/bazel/BUILD.redis
 +++ b/bazel/BUILD.redis
 @@ -21,6 +21,7 @@ make(
