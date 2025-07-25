@@ -241,8 +241,6 @@ outputs:
 
   - name: ray-rllib
     build:
-      entry_points:
-        - rllib = ray.rllib.scripts:cli
     requirements:
       host:
         - python
@@ -260,12 +258,6 @@ outputs:
     test:
       imports:
         - ray.rllib                                       # [not (osx and arm64)]
-      commands:
-        # some interaction with rich and the test runner in azure
-        # xref https://github.com/Textualize/rich/issues/2411 ?
-        # Skip on osx-arm64 to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
-        - python -c "import subprocess, os; os.environ['PYTHONIOENCODING']='utf-8'; subprocess.run(['rllib', '--help'], capture_output=True, check=True)" # [not (osx and arm64)]
-
   - name: ray-data
     requirements:
       host:
