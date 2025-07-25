@@ -4,6 +4,8 @@ set -xe
 bazel clean --expunge
 bazel shutdown
 
+export SKIP_THIRDPARTY_INSTALL_CONDA_FORGE=1
+
 if [[ "${target_platform}" == linux-aarch64 ]]; then
   # Fix -Werror=stringop-overflow error
   echo 'build --per_file_copt="external/upb/upbc/protoc-gen-upbdefs\.cc@-w"' >> .bazelrc
