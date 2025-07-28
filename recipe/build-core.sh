@@ -4,14 +4,12 @@ set -xe
 bazel clean --expunge
 bazel shutdown
 
-export SKIP_THIRDPARTY_INSTALL_CONDA_FORGE=1
-
 if [[ "${target_platform}" == linux-aarch64 ]]; then
   # Fix -Werror=stringop-overflow error
   echo 'build --per_file_copt="external/upb/upbc/protoc-gen-upbdefs\.cc@-w"' >> .bazelrc
   echo 'build --host_per_file_copt="external/upb/upbc/protoc-gen-upbdefs\.cc@-w"' >> .bazelrc
   # Fix memory error
-  echo 'build --jobs=2' >> .bazelrc
+  echo 'build --local_cpu_resources=2' >> .bazelrc
 fi
 
 if [[ "${target_platform}" == osx-* ]]; then
@@ -43,22 +41,48 @@ else
   export LDFLAGS="${LDFLAGS} -lrt"
 fi
 
+if [[ "${target_platform}" == osx-64 ]]; then
+  # Fix "too many open files" error
+  echo 'build --local_cpu_resources=1' >> .bazelrc
+fi
+
 echo build --linkopt=-static-libstdc++ >> .bazelrc
 echo build --linkopt=-lm >> .bazelrc
 
 # To debug, uncomment this
-#echo build --subcommands >> .bazelrc
-#echo build --verbose_failures >> .bazelrc
+# echo build --sandbox_debug >> .bazelrc
+# echo build --subcommands >> .bazelrc
+# echo build --verbose_failures >> .bazelrc
+# echo build --spawn_strategy=standalone >> .bazelrc
 
-# For some weird reason, ar is not picked up on linux-aarch64
-if [ $(uname -s) = "Linux" ] && [ ! -f "${BUILD_PREFIX}/bin/ar" ]; then
-    ln -s "${BUILD}-ar" "${BUILD_PREFIX}/bin/ar"
-    ln -s "$RANLIB" "${BUILD_PREFIX}/bin/ranlib"
-    ln -sf "$LD" "${BUILD_PREFIX}/bin/ld"
+# For some weird reason, build tools are not picked up on linux-aarch64
+if [[ "${target_platform}" == linux-aarch64 ]]; then
+
+    echo build --action_env=BUILD_PREFIX >> .bazelrc
+    
+    # Fix missing build tools by creating symlinks to generic names
+    if [ ! -f "${BUILD_PREFIX}/bin/ar" ]; then
+        ln -s "${AR}" "${BUILD_PREFIX}/bin/ar"
+    fi
+    if [ ! -f "${BUILD_PREFIX}/bin/ranlib" ]; then
+        ln -s "${RANLIB}" "${BUILD_PREFIX}/bin/ranlib"
+    fi
+    if [ ! -f "${BUILD_PREFIX}/bin/ld" ]; then
+        ln -s "${LD}" "${BUILD_PREFIX}/bin/ld"
+    fi
+    if [ ! -f "${BUILD_PREFIX}/bin/gcc" ]; then
+        ln -s "${CC}" "${BUILD_PREFIX}/bin/gcc"
+    fi
+    if [ ! -f "${BUILD_PREFIX}/bin/g++" ]; then
+        ln -s "${CXX}" "${BUILD_PREFIX}/bin/g++"
+    fi
+    if [ ! -f "${BUILD_PREFIX}/bin/strip" ]; then
+        ln -s "${STRIP}" "${BUILD_PREFIX}/bin/strip"
+    fi
 fi
 
 cd python/
-export SKIP_THIRDPARTY_INSTALL=1
+export SKIP_THIRDPARTY_INSTALL_CONDA_FORGE=1
 "${PYTHON}" setup.py build
 # bazel by default makes everything read-only,
 # which leads to patchelf failing to fix rpath in binaries.
