@@ -4,6 +4,11 @@ set -xe
 bazel clean --expunge
 bazel shutdown
 
+if [[ "${target_platform}" == osx-64 ]]; then
+  # Fix "too many open files" error
+  ulimit -s 65532
+fi
+
 if [[ "${target_platform}" == linux-aarch64 ]]; then
   # Fix -Werror=stringop-overflow error
   echo 'build --per_file_copt="external/upb/upbc/protoc-gen-upbdefs\.cc@-w"' >> .bazelrc
@@ -39,11 +44,6 @@ if [[ "${target_platform}" == osx-* ]]; then
   echo 'build --per_file_copt="src/ray/.*$@-w"' >> .bazelrc
 else
   export LDFLAGS="${LDFLAGS} -lrt"
-fi
-
-if [[ "${target_platform}" == osx-64 ]]; then
-  # Fix "too many open files" error
-  echo 'build --local_cpu_resources=1' >> .bazelrc
 fi
 
 echo build --linkopt=-static-libstdc++ >> .bazelrc
