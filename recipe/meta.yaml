@@ -21,6 +21,8 @@ source:
 build:
   number: 0
   skip: true  # [py<39 or py>312]
+  # Skipping OSX-64 for now due to "Too many open files" error. 
+  skip: true  # [(osx and x86_64)]
 
 # The requirements/build&host sections of ray-core need to be replicated here.
 # It is not clear why at this time but not having them here causes conda build to behave non-deterministically and crash. 
