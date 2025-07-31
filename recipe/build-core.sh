@@ -4,16 +4,12 @@ set -xe
 bazel clean --expunge
 bazel shutdown
 
-if [[ "${target_platform}" == osx-64 ]]; then
-  # Fix "too many open files" error
-  ulimit -s 65532
-fi
-
 if [[ "${target_platform}" == linux-aarch64 ]]; then
   # Fix -Werror=stringop-overflow error
   echo 'build --per_file_copt="external/upb/upbc/protoc-gen-upbdefs\.cc@-w"' >> .bazelrc
   echo 'build --host_per_file_copt="external/upb/upbc/protoc-gen-upbdefs\.cc@-w"' >> .bazelrc
-  # Fix memory error
+  # Fix memory error. Stick with 2 cores for now.
+  # Evaluate as the build system changes. 
   echo 'build --local_cpu_resources=2' >> .bazelrc
 fi
 

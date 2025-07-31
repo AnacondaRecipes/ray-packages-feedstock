@@ -1,25 +1,4 @@
 cuda_compiler_version:                            # [linux and x86_64]
   - None                                          # [linux and x86_64]
-docker_image:                                     # [linux and x86_64]
-  - quay.io/condaforge/linux-anvil-cos7-x86_64    # [linux and x86_64]
 cudnn:                                            # [linux and x86_64]
   - undefined                                     # [linux and x86_64]
-cdt_name:                                         # [linux and x86_64]
-  - cos7                                          # [linux and x86_64]
-
-c_compiler:                                       # [win]
-- vs2019                                          # [win]
-cxx_compiler:                                     # [win]
-- vs2019                                          # [win]
-macos_min_version:
-  - 10.15  # [osx and x86_64]
-  - 11.13  # [osx and arm64]
-MACOSX_DEPLOYMENT_TARGET:
-  - 10.15  # [osx and x86_64]
-  - 11.1  # [osx and arm64]
-MACOSX_SDK_VERSION:        # [osx]
-  - "10.15"                # [osx and x86_64]
-  - "11.1"                 # [osx and arm64]
-CONDA_BUILD_SYSROOT:
-  - /opt/MacOSX10.15.sdk        # [osx and x86_64]
-  - /Library/Developer/CommandLineTools/SDKs/MacOSX11.1.sdk  # [osx and arm64]
