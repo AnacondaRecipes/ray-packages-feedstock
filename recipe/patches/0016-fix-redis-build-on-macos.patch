@@ -8,10 +8,10 @@ Co-authored-by: Jean-Christophe Morin <jcmorin@anaconda.com>
  bazel/BUILD.redis | 10 +++++-----
  1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/bazel/BUILD.redis b/bazel/BUILD.redis
+diff --git a/bazel/redis.BUILD b/bazel/redis.BUILD
 index 818ab93..4adfd13 100644
---- a/bazel/BUILD.redis
-+++ b/bazel/BUILD.redis
+--- a/bazel/redis.BUILD
++++ b/bazel/redis.BUILD
 @@ -42,17 +42,17 @@ make(
  
  genrule_cmd = select({

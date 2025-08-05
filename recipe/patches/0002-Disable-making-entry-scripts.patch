@@ -8,23 +8,19 @@ Subject: [PATCH 2/5] Disable making entry scripts
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/python/setup.py b/python/setup.py
-index d1566cf14f..c79aca8689 100644
+index d9935f087e..67f2ab1b2d 100644
 --- a/python/setup.py
 +++ b/python/setup.py
-@@ -795,10 +795,10 @@ setuptools.setup(
+@@ -728,9 +728,9 @@ setuptools.setup(
      extras_require=setup_spec.extras,
      entry_points={
          "console_scripts": [
 -            "ray=ray.scripts.scripts:main",
--            "rllib=ray.rllib.scripts:cli [rllib]",
 -            "tune=ray.tune.cli.scripts:cli",
 -            "serve=ray.serve.scripts:cli",
 +            #"ray=ray.scripts.scripts:main",
-+            #"rllib=ray.rllib.scripts:cli [rllib]",
 +            #"tune=ray.tune.cli.scripts:cli",
 +            #"serve=ray.serve.scripts:cli",
          ]
      },
      package_data={
--- 
-2.39.2 (Apple Git-143)

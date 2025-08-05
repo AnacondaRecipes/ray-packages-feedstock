@@ -10,18 +10,16 @@ Signed-off-by: Jiajun Yao <jeromeyjj@gmail.com>
  1 file changed, 3 insertions(+)
 
 diff --git a/.bazelrc b/.bazelrc
-index e81c646c15..f697edbbae 100644
+index 13774dda7c..7db790a4bf 100644
 --- a/.bazelrc
 +++ b/.bazelrc
-@@ -44,6 +44,9 @@ build:clang-cl --per_file_copt="-\\.(asm|S)$@-Werror"
+@@ -57,6 +57,9 @@ build:clang-cl --per_file_copt="-\\.(asm|S)$@-Werror"
  build:msvc-cl     --per_file_copt="-\\.(asm|S)$@-WX"
  # Ignore warnings for protobuf generated files and external projects.
  build --per_file_copt="\\.pb\\.cc$@-w"
 +# Ignore one specific warning
 +build --per_file_copt="event\\.cc$@-w"
 +build --per_file_copt="logging\\.cc$@-w"
- build:linux --per_file_copt="-\\.(asm|S)$,external/.*@-w,-Wno-error=implicit-function-declaration"
- build:macos --per_file_copt="-\\.(asm|S)$,external/.*@-w,-Wno-error=implicit-function-declaration"
- # Ignore minor warnings for host tools, which we generally can't control
--- 
-2.39.2 (Apple Git-143)
+ build:linux --per_file_copt="-\\.(asm|S)$,external/.*@-w,-Wno-error=implicit-function-declaration,-Wno-error=unused-function"
+ build:macos --per_file_copt="-\\.(asm|S)$,external/.*@-w,-Wno-error=implicit-function-declaration,-Wno-error=unused-function,-Wno-missing-template-arg-list-after-template-kw"
+ # Ignore warnings for host tools, which we generally can't control.
