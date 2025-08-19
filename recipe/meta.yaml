@@ -20,7 +20,8 @@ source:
 
 build:
   number: 1
-  skip: true  # [py<39]
+  # All Python versions are breaking the CI. Temporarily, only Python 3.13 will be used to rebuild and release these artifacts.
+  skip: true  # [py<313]
   # Skipping OSX-64 for now due to "Too many open files" error. 
   skip: true  # [(osx and x86_64)]
 
