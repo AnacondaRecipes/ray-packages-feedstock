@@ -20,7 +20,7 @@ source:
 
 build:
   number: 0
-  skip: true  # [py<39 or py>312]
+  skip: true  # [py<39]
   # Skipping OSX-64 for now due to "Too many open files" error. 
   skip: true  # [(osx and x86_64)]
 
