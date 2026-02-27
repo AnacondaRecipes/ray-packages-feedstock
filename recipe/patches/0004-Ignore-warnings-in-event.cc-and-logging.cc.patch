@@ -1,25 +1,26 @@
-From 48a3f3ace3588ce76c2f365e010104a4698397a3 Mon Sep 17 00:00:00 2001
-From: Vasily Litvinov <vasilij.n.litvinov@intel.com>
-Date: Fri, 3 Dec 2021 10:59:10 -0800
-Subject: [PATCH 4/5] Ignore warnings in event.cc and logging.cc
+From b0e578622617478bbdd774179ca22f9d6c3967ee Mon Sep 17 00:00:00 2001
+From: Andrii Osipov <aosipov@anaconda.com>
+Date: Fri, 27 Feb 2026 01:56:17 -0800
+Subject: [PATCH] Ignore warnings in event.cc and logging.cc
 
-Signed-off-by: Vasily Litvinov <vasilij.n.litvinov@intel.com>
-Signed-off-by: Jiajun Yao <jeromeyjj@gmail.com>
 ---
  .bazelrc | 3 +++
  1 file changed, 3 insertions(+)
 
 diff --git a/.bazelrc b/.bazelrc
-index 13774dda7c..7db790a4bf 100644
+index eab35f7..31d639f 100644
 --- a/.bazelrc
 +++ b/.bazelrc
-@@ -57,6 +57,9 @@ build:clang-cl --per_file_copt="-\\.(asm|S)$@-Werror"
- build:msvc-cl     --per_file_copt="-\\.(asm|S)$@-WX"
+@@ -60,6 +60,9 @@ build:msvc-cl     --per_file_copt="-\\.(asm|S)$@-WX"
  # Ignore warnings for protobuf generated files and external projects.
  build --per_file_copt="\\.pb\\.cc$@-w"
+ build --per_file_copt="src/ray/thirdparty/.*$@-w"
 +# Ignore one specific warning
 +build --per_file_copt="event\\.cc$@-w"
 +build --per_file_copt="logging\\.cc$@-w"
  build:linux --per_file_copt="-\\.(asm|S)$,external/.*@-w,-Wno-error=implicit-function-declaration,-Wno-error=unused-function"
  build:macos --per_file_copt="-\\.(asm|S)$,external/.*@-w,-Wno-error=implicit-function-declaration,-Wno-error=unused-function,-Wno-missing-template-arg-list-after-template-kw"
  # Ignore warnings for host tools, which we generally can't control.
+-- 
+2.39.3 (Apple Git-146)
+

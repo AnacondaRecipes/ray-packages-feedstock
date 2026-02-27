@@ -1,26 +1,29 @@
-From db42a42d6116cdde036aac4a301664357f0998d7 Mon Sep 17 00:00:00 2001
-From: Vasily Litvinov <vasilij.n.litvinov@intel.com>
-Date: Tue, 10 Nov 2020 23:26:35 +0300
-Subject: [PATCH 2/5] Disable making entry scripts
+From 7260e9f3b2ec16e6e52873631e0e9f07db9f2406 Mon Sep 17 00:00:00 2001
+From: Andrii Osipov <aosipov@anaconda.com>
+Date: Fri, 27 Feb 2026 01:53:36 -0800
+Subject: [PATCH] Disable making entry scripts
 
 ---
- python/setup.py | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ python/setup.py | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/python/setup.py b/python/setup.py
-index d9935f087e..67f2ab1b2d 100644
+index a04fa86..38b5984 100644
 --- a/python/setup.py
 +++ b/python/setup.py
-@@ -728,9 +728,9 @@ setuptools.setup(
-     extras_require=setup_spec.extras,
-     entry_points={
-         "console_scripts": [
--            "ray=ray.scripts.scripts:main",
--            "tune=ray.tune.cli.scripts:cli",
--            "serve=ray.serve.scripts:cli",
-+            #"ray=ray.scripts.scripts:main",
-+            #"tune=ray.tune.cli.scripts:cli",
-+            #"serve=ray.serve.scripts:cli",
-         ]
-     },
-     package_data={
+@@ -833,9 +833,9 @@ if __name__ == "__main__":
+         extras_require=setup_spec.extras,
+         entry_points={
+             "console_scripts": [
+-                "ray=ray.scripts.scripts:main",
+-                "tune=ray.tune.cli.scripts:cli",
+-                "serve=ray.serve.scripts:cli",
++                #"ray=ray.scripts.scripts:main",
++                #"tune=ray.tune.cli.scripts:cli",
++                #"serve=ray.serve.scripts:cli",
+             ]
+         },
+         package_data={
+-- 
+2.39.3 (Apple Git-146)
+
