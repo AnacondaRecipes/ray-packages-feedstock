@@ -1,24 +1,10 @@
-From 8c6fc601493dcf83052018f03aa4a3b5624d35f0 Mon Sep 17 00:00:00 2001
-From: Andrii Osipov <aosipov@anaconda.com>
-Date: Fri, 27 Feb 2026 05:45:16 -0800
-Subject: [PATCH] add ldl
-
----
- bazel/redis.BUILD | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/bazel/redis.BUILD b/bazel/redis.BUILD
-index 649281e..5f8b9de 100644
 --- a/bazel/redis.BUILD
 +++ b/bazel/redis.BUILD
-@@ -33,6 +33,7 @@ make(
-     env = {
-         "PATH": "$$BUILD_PREFIX/bin:$$PATH",
-     },
+@@ -27,6 +27,7 @@ make(
+         "-Wno-empty-body",
+         "-fPIC",
+     ],
 +    linkopts = ["-ldl"],
      visibility = ["//visibility:public"],
      lib_source = ":all_srcs",
      deps = [
--- 
-2.39.3 (Apple Git-146)
-
