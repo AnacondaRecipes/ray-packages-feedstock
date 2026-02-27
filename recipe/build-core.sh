@@ -45,11 +45,15 @@ if [[ "${target_platform}" == osx-* ]]; then
   echo 'build --per_file_copt="spdlog/.*@-w"' >> .bazelrc
   echo 'build --per_file_copt="src/ray/.*$@-w"' >> .bazelrc
 else
-  export LDFLAGS="${LDFLAGS} -lrt"
+  # rules_foreign_cc passes LDFLAGS directly to foreign builds (e.g. GNU make bootstrap)
+  # -ldl is needed for dlopen/dlsym used by GNU make's load.c
+  export LDFLAGS="${LDFLAGS} -lrt -ldl"
+  echo "build --action_env=LDFLAGS" >> .bazelrc
 fi
 
 echo build --linkopt=-static-libstdc++ >> .bazelrc
 echo build --linkopt=-lm >> .bazelrc
+echo build --linkopt=-ldl >> .bazelrc
 
 # To debug, uncomment this
 # echo build --sandbox_debug >> .bazelrc
