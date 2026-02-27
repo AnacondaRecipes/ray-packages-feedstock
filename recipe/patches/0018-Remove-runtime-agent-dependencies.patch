@@ -1,5 +1,5 @@
 From 245031d076d6780462c2869f8eddb783e005e3bb Mon Sep 17 00:00:00 2001
-From: Andrii Osipov <aosipov@anaconda.com>
+From: Mohamed Sentissi <msentissi@anaconda.com>
 Date: Fri, 27 Feb 2026 02:32:49 -0800
 Subject: [PATCH] Remove runtime agent dependencies
 

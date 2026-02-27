@@ -1,5 +1,5 @@
 From 0b6e95ae42dce0cbd2916eb7ae5ec5127bb51bab Mon Sep 17 00:00:00 2001
-From: Andrii Osipov <aosipov@anaconda.com>
+From: Mohamed Sentissi <msentissi@anaconda.com>
 Date: Fri, 27 Feb 2026 02:15:03 -0800
 Subject: [PATCH] Removed all dependencies from setup.py
 

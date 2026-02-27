@@ -1,5 +1,5 @@
 From 7fe109f8e7d937393afcfaaf7887b0023eea9873 Mon Sep 17 00:00:00 2001
-From: Andrii Osipov <aosipov@anaconda.com>
+From: Jean-Christophe Morin <jcmorin@anaconda.com>
 Date: Fri, 27 Feb 2026 02:16:48 -0800
 Subject: [PATCH] Don't build redis with jemalloc on linux-aarch64 to avoid a 
  mysterious linking error:

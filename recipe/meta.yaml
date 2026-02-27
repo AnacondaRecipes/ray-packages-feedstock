@@ -44,7 +44,7 @@ requirements:
   host:
     - python
     - pip
-    - cython >=0.29.32
+    - cython >=3.0.12
     - pkg-config  # [osx]
     - setuptools
     - wheel

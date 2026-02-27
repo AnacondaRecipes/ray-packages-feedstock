@@ -1,5 +1,5 @@
 From 13b0128613727f7034864d80470a42876a8021ae Mon Sep 17 00:00:00 2001
-From: Andrii Osipov <aosipov@anaconda.com>
+From: Mohamed Sentissi <msentissi@anaconda.com>
 Date: Fri, 27 Feb 2026 02:29:58 -0800
 Subject: [PATCH] fix redis build on macos
 

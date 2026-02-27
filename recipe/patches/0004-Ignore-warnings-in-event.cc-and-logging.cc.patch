@@ -1,5 +1,5 @@
 From b0e578622617478bbdd774179ca22f9d6c3967ee Mon Sep 17 00:00:00 2001
-From: Andrii Osipov <aosipov@anaconda.com>
+From: Vasily Litvinov <vasilij.n.litvinov@intel.com>
 Date: Fri, 27 Feb 2026 01:56:17 -0800
 Subject: [PATCH] Ignore warnings in event.cc and logging.cc
 

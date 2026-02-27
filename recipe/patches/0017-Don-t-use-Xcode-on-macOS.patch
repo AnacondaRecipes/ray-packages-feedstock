@@ -1,5 +1,5 @@
 From 4f82a98d60d61606635280c1e7af94b579f33ae0 Mon Sep 17 00:00:00 2001
-From: Andrii Osipov <aosipov@anaconda.com>
+From: Jean-Christophe Morin <jcmorin@anaconda.com>
 Date: Fri, 27 Feb 2026 02:31:18 -0800
 Subject: [PATCH] Don't use Xcode on macOS
 

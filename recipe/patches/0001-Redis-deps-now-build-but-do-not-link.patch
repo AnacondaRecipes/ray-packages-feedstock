@@ -1,5 +1,5 @@
 From 3973485040419cd8f5e7c8df94d37aec1534a52e Mon Sep 17 00:00:00 2001
-From: Andrii Osipov <aosipov@anaconda.com>
+From: Mohamed Sentissi <msentissi@anaconda.com>
 Date: Fri, 27 Feb 2026 01:39:00 -0800
 Subject: [PATCH] Redis deps now build but do not link
 
