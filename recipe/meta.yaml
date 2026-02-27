@@ -13,10 +13,10 @@ source:
     - patches/0002-Disable-making-entry-scripts.patch
     # - patches/0003-Add-bazel-linkopts-libs.patch
     - patches/0004-Ignore-warnings-in-event.cc-and-logging.cc.patch
-    - patches/0005-Remove-all-dependencies-from-setup.py.patch
+    - patches/0005-Removed-all-dependencies-from-setup.py.patch
     - patches/0015-Don-t-build-redis-with-jemalloc-on-linux-aarch64.patch  # [linux and aarch64]
     - patches/0016-fix-redis-build-on-macos.patch  # [osx]
-    - patches/0017-Don-t-use-Xcode-on-macOS.patch
+    - patches/0017-Don-t-use-Xcode-on-macOS.patch  # [osx]
     - patches/0018-Remove-runtime-agent-dependencies.patch
 
 build:
