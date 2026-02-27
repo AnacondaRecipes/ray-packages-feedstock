@@ -94,18 +94,18 @@ index 3a5449d..df8fb29 100644
 +@@ -11,6 +11,10 @@ BINCOLOR="\033[37;1m"
 + MAKECOLOR="\033[32;1m"
 + ENDCOLOR="\033[0m"
-+ 
++
 ++AR=ar
 ++ARFLAGS=rcu
 ++RANLIB=ranlib
 ++
 + default:
-+ 	@echo "Explicit target required"
-+ 
++   @echo "Explicit target required"
++
  @@ -51,25 +51,25 @@ ifneq (,$(filter $(BUILD_TLS),yes module))
   endif
 -
-+ 
++
   hiredis: .make-prerequisites
  -	@printf '%b %b\n' $(MAKECOLOR)MAKE$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR)
 +-	cd hiredis && $(MAKE) static $(HIREDIS_MAKE_FLAGS)
@@ -113,40 +113,40 @@ index 3a5449d..df8fb29 100644
 - 	cd hiredis && $(MAKE) static $(HIREDIS_MAKE_FLAGS)
 -
 ++	cd hiredis && $(MAKE) static $(HIREDIS_MAKE_FLAGS) AR="$(AR)"
-+ 
++
   .PHONY: hiredis
 -
-+ 
++
   linenoise: .make-prerequisites
  -	@printf '%b %b\n' $(MAKECOLOR)MAKE$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR)
  +	#@printf '%b %b\n' $(MAKECOLOR)MAKE$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR)
   	cd linenoise && $(MAKE)
 -
-+ 
++
   .PHONY: linenoise
 -
-+ 
++
   hdr_histogram: .make-prerequisites
  -	@printf '%b %b\n' $(MAKECOLOR)MAKE$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR)
  +	#@printf '%b %b\n' $(MAKECOLOR)MAKE$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR)
   	cd hdr_histogram && $(MAKE)
 -
-+ 
++
   .PHONY: hdr_histogram
 -
-+ 
++
   fpconv: .make-prerequisites
  -	@printf '%b %b\n' $(MAKECOLOR)MAKE$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR)
  +	#@printf '%b %b\n' $(MAKECOLOR)MAKE$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR)
   	cd fpconv && $(MAKE)
 -
-+ 
++
   .PHONY: fpconv
 -@@ -98,7 +98,7 @@ AR=ar
 - ARFLAGS=rc
 -
 +@@ -98,7 +98,7 @@ ARFLAGS=rcu
-+ 
++
   lua: .make-prerequisites
  -	@printf '%b %b\n' $(MAKECOLOR)MAKE$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR)
 +-	cd lua/src && $(MAKE) all CFLAGS="$(LUA_CFLAGS)" MYLDFLAGS="$(LUA_LDFLAGS)" AR="$(AR) $(ARFLAGS)"
@@ -154,20 +154,20 @@ index 3a5449d..df8fb29 100644
 - 	cd lua/src && $(MAKE) all CFLAGS="$(LUA_CFLAGS)" MYLDFLAGS="$(LUA_LDFLAGS)" AR="$(AR) $(ARFLAGS)"
 -
 ++	cd lua/src && $(MAKE) all CFLAGS="$(LUA_CFLAGS)" MYLDFLAGS="$(LUA_LDFLAGS)" AR="$(AR) $(ARFLAGS)" RANLIB="$(RANLIB)"
-+ 
++
   .PHONY: lua
-+ 
++
  @@ -111,7 +111,7 @@ JEMALLOC_CONFIGURE_OPTS += --host=$(DEB_HOST_GNU_TYPE)
   endif
 -
-+ 
++
   jemalloc: .make-prerequisites
  -	@printf '%b %b\n' $(MAKECOLOR)MAKE$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR)
  +	#@printf '%b %b\n' $(MAKECOLOR)MAKE$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR)
   	cd jemalloc && ./configure --disable-cxx --with-version=5.3.0-0-g0 --with-lg-quantum=3 --disable-cache-oblivious --with-jemalloc-prefix=je_ CFLAGS="$(JEMALLOC_CFLAGS)" LDFLAGS="$(JEMALLOC_LDFLAGS)" $(JEMALLOC_CONFIGURE_OPTS)
   	cd jemalloc && $(MAKE) lib/libjemalloc.a
 -
-+ 
++
  diff --git a/deps/jemalloc/Makefile.in b/deps/jemalloc/Makefile.in
 -index 1193cd859..140995eb5 100644
 +index 7128b007e..da8e4299f 100644
@@ -176,12 +176,12 @@ index 3a5449d..df8fb29 100644
  @@ -496,7 +496,7 @@ $(objroot)include/jemalloc/internal/private_namespace_jet.gen.h: $(C_JET_SYMS)
   	$(SHELL) $(srcroot)include/jemalloc/internal/private_namespace.sh $^ > $@
 -
-+ 
++
   %.h: %.gen.h
  -	@if ! `cmp -s $< $@` ; then echo "cp $< $@"; cp $< $@ ; fi
  +	@if ! `cmp -s $< $@` ; then cp $< $@ ; fi
 -
-+ 
++
   $(CPP_OBJS) $(CPP_PIC_OBJS) $(TESTS_CPP_OBJS): %.$(O):
   	@mkdir -p $(@D)
  diff --git a/src/Makefile b/src/Makefile
@@ -193,7 +193,7 @@ index 3a5449d..df8fb29 100644
   # Override default settings if possible
   -include .make-settings
 -
-+ 
++
  -FINAL_CFLAGS=$(STD) $(WARN) $(OPT) $(DEBUG) $(CFLAGS) $(REDIS_CFLAGS)
  +FINAL_CFLAGS=$(STD) $(WARN) $(OPT) $(DEBUG) $(CFLAGS) $(REDIS_CFLAGS) $(CPPFLAGS)
   FINAL_LDFLAGS=$(LDFLAGS) $(REDIS_LDFLAGS) $(DEBUG)
@@ -205,7 +205,7 @@ index 3a5449d..df8fb29 100644
 +@@ -328,6 +328,9 @@ BINCOLOR="\033[37;1m"
 + MAKECOLOR="\033[32;1m"
 + ENDCOLOR="\033[0m"
-+ 
++
 ++AR=ar
 ++RANLIB=ranlib
 ++
@@ -213,7 +213,7 @@ index 3a5449d..df8fb29 100644
 + QUIET_CC = @printf '    %b %b\n' $(CCCOLOR)CC$(ENDCOLOR) $(SRCCOLOR)$@$(ENDCOLOR) 1>&2;
 + QUIET_GEN = @printf '    %b %b\n' $(CCCOLOR)GEN$(ENDCOLOR) $(SRCCOLOR)$@$(ENDCOLOR) 1>&2;
 +@@ -355,9 +355,9 @@ ALL_SOURCES=$(sort $(patsubst %.o,%.c,$(REDIS_SERVER_OBJ) $(REDIS_CLI_OBJ) $(RE
-+ 
++
   all: $(REDIS_SERVER_NAME) $(REDIS_SENTINEL_NAME) $(REDIS_CLI_NAME) $(REDIS_BENCHMARK_NAME) $(REDIS_CHECK_RDB_NAME) $(REDIS_CHECK_AOF_NAME) $(TLS_MODULE)
  -	@echo ""
  -	@echo "Hint: It's a good idea to run 'make test' ;)"
@@ -222,19 +222,19 @@ index 3a5449d..df8fb29 100644
  +	#@echo "Hint: It's a good idea to run 'make test' ;)"
  +	#@echo ""
 -
-+ 
++
   Makefile.dep:
   	-$(REDIS_CC) -MM $(ALL_SOURCES) > Makefile.dep 2> /dev/null || true
 +@@ -384,7 +384,7 @@ persist-settings: distclean
-+ 	echo REDIS_LDFLAGS=$(REDIS_LDFLAGS) >> .make-settings
-+ 	echo PREV_FINAL_CFLAGS=$(FINAL_CFLAGS) >> .make-settings
-+ 	echo PREV_FINAL_LDFLAGS=$(FINAL_LDFLAGS) >> .make-settings
++   echo REDIS_LDFLAGS=$(REDIS_LDFLAGS) >> .make-settings
++   echo PREV_FINAL_CFLAGS=$(FINAL_CFLAGS) >> .make-settings
++   echo PREV_FINAL_LDFLAGS=$(FINAL_LDFLAGS) >> .make-settings
 +-	-(cd ../deps && $(MAKE) $(DEPENDENCY_TARGETS))
 ++	-(cd ../deps && $(MAKE) $(DEPENDENCY_TARGETS) AR="$(AR)" RANLIB="$(RANLIB)")
-+ 
++
 + .PHONY: persist-settings
-+ 
-+-- 
++
++--
 \ No newline at end of file
 -- 
 2.39.3 (Apple Git-146)

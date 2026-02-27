@@ -35,6 +35,8 @@ requirements:
     - bazel =6.5.0
     - curl
     - git
+    - m2-unzip  # [win]
+    - unzip  # [not win]
     - m2-make   # [win]
     - make      # [not win]
     - pkg-config  # [osx or (linux and aarch64)]
@@ -101,6 +103,8 @@ outputs:
         - git
         - m2-make   # [win]
         - make      # [not win]
+        - m2-unzip  # [win]
+        - unzip  # [not win]
         - pkg-config  # [osx or (linux and aarch64)]
         - patchelf  # [linux]
         - python  
