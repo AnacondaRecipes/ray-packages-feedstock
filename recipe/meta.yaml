@@ -18,7 +18,7 @@ source:
     - patches/0016-fix-redis-build-on-macos.patch  # [osx]
     - patches/0017-Don-t-use-Xcode-on-macOS.patch  # [osx]
     - patches/0018-Remove-runtime-agent-dependencies.patch
-    - patches/0019-add-ldl.patch  # [linux and x86_64]
+    - patches/0019-add-ldl-for-redis.patch  # [linux and x86_64]
 
 build:
   number: 0
