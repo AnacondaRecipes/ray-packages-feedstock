@@ -33,7 +33,7 @@ requirements:
     - m2-patch       # [win]
     - bazel =6.5.0
     - curl
-    - git  # [not win]
+    - git
     - m2-make   # [win]
     - make      # [not win]
     - pkg-config  # [osx or (linux and aarch64)]
@@ -97,7 +97,7 @@ outputs:
         - {{ compiler('cxx') }}
         - bazel =6.5.0
         - curl
-        - git  # [not win]
+        - git
         - m2-make   # [win]
         - make      # [not win]
         - pkg-config  # [osx or (linux and aarch64)]

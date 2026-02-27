@@ -4,6 +4,12 @@ set -xe
 bazel clean --expunge
 bazel shutdown
 
+# Fix: Bazel linux-sandbox restricts PATH to /bin:/usr/bin:/usr/local/bin
+# This means it can't find python3 or other conda-env tools during builds.
+# Propagate the full conda PATH into every Bazel action via action_env.
+echo "build --action_env=PATH=${PATH}" >> .bazelrc
+echo "build --action_env=PYTHONPATH=${PYTHONPATH:-}" >> .bazelrc
+
 if [[ "${target_platform}" == linux-aarch64 ]]; then
   # Fix -Werror=stringop-overflow error
   echo 'build --per_file_copt="external/upb/upbc/protoc-gen-upbdefs\.cc@-w"' >> .bazelrc
@@ -53,28 +59,14 @@ echo build --linkopt=-lm >> .bazelrc
 
 # For some weird reason, build tools are not picked up on linux-aarch64
 if [[ "${target_platform}" == linux-aarch64 ]]; then
-
-    echo build --action_env=BUILD_PREFIX >> .bazelrc
-    
+    echo build --action_env=BUILD_PREFIX=${BUILD_PREFIX} >> .bazelrc
     # Fix missing build tools by creating symlinks to generic names
-    if [ ! -f "${BUILD_PREFIX}/bin/ar" ]; then
-        ln -s "${AR}" "${BUILD_PREFIX}/bin/ar"
-    fi
-    if [ ! -f "${BUILD_PREFIX}/bin/ranlib" ]; then
-        ln -s "${RANLIB}" "${BUILD_PREFIX}/bin/ranlib"
-    fi
-    if [ ! -f "${BUILD_PREFIX}/bin/ld" ]; then
-        ln -s "${LD}" "${BUILD_PREFIX}/bin/ld"
-    fi
-    if [ ! -f "${BUILD_PREFIX}/bin/gcc" ]; then
-        ln -s "${CC}" "${BUILD_PREFIX}/bin/gcc"
-    fi
-    if [ ! -f "${BUILD_PREFIX}/bin/g++" ]; then
-        ln -s "${CXX}" "${BUILD_PREFIX}/bin/g++"
-    fi
-    if [ ! -f "${BUILD_PREFIX}/bin/strip" ]; then
-        ln -s "${STRIP}" "${BUILD_PREFIX}/bin/strip"
-    fi
+    if [ ! -f "${BUILD_PREFIX}/bin/ar" ]; then ln -s "${AR}" "${BUILD_PREFIX}/bin/ar"; fi
+    if [ ! -f "${BUILD_PREFIX}/bin/ranlib" ]; then ln -s "${RANLIB}" "${BUILD_PREFIX}/bin/ranlib"; fi
+    if [ ! -f "${BUILD_PREFIX}/bin/ld" ]; then ln -s "${LD}" "${BUILD_PREFIX}/bin/ld"; fi
+    if [ ! -f "${BUILD_PREFIX}/bin/gcc" ]; then ln -s "${CC}" "${BUILD_PREFIX}/bin/gcc"; fi
+    if [ ! -f "${BUILD_PREFIX}/bin/g++" ]; then ln -s "${CXX}" "${BUILD_PREFIX}/bin/g++"; fi
+    if [ ! -f "${BUILD_PREFIX}/bin/strip" ]; then ln -s "${STRIP}" "${BUILD_PREFIX}/bin/strip"; fi
 fi
 
 cd python/
