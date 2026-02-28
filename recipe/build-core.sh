@@ -58,10 +58,10 @@ echo build --linkopt=-lm >> .bazelrc
 echo build --linkopt=-ldl >> .bazelrc
 
 # To debug, uncomment this
-# echo build --sandbox_debug >> .bazelrc
-# echo build --subcommands >> .bazelrc
-# echo build --verbose_failures >> .bazelrc
-# echo build --spawn_strategy=standalone >> .bazelrc
+echo build --sandbox_debug >> .bazelrc
+echo build --subcommands >> .bazelrc
+echo build --verbose_failures >> .bazelrc
+echo build --spawn_strategy=standalone >> .bazelrc
 
 # For some weird reason, build tools are not picked up on linux-aarch64
 if [[ "${target_platform}" == linux-aarch64 ]]; then
