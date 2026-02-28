@@ -45,14 +45,17 @@ if [[ "${target_platform}" == osx-* ]]; then
   echo 'build --per_file_copt="spdlog/.*@-w"' >> .bazelrc
   echo 'build --per_file_copt="src/ray/.*$@-w"' >> .bazelrc
 else
-  # rules_foreign_cc passes LDFLAGS directly to foreign builds (e.g. GNU make bootstrap)
-  # -ldl is needed for dlopen/dlsym used by GNU make's load.c
-  export LDFLAGS="${LDFLAGS} -lrt -ldl"
-  echo "build --action_env=LDFLAGS" >> .bazelrc
+  # Do not pass conda LDFLAGS (e.g. -fuse-ld=gold, -B) into Bazel: rules_foreign_cc
+  # uses them when building host tools (e.g. GNU make bootstrap), and the C compiler
+  # then fails to create executables. We pass only the needed libs via linkopts below.
+  # Clear LDFLAGS for all Bazel actions so host tool builds (BootstrapGNUMake) do not
+  # inherit conda's LDFLAGS and fail with "C compiler cannot create executables".
+  echo "build --action_env=LDFLAGS=" >> .bazelrc
   echo "build --host_action_env=PATH=${PATH}" >> .bazelrc
   echo "build --host_action_env=LDFLAGS=-ldl" >> .bazelrc
   echo "build --host_linkopt=-ldl" >> .bazelrc
   echo "build --host_linkopt=-fuse-ld=bfd" >> .bazelrc
+  echo "build --linkopt=-lrt" >> .bazelrc
 fi
 
 echo build --linkopt=-static-libstdc++ >> .bazelrc
