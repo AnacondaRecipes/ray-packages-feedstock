@@ -49,6 +49,7 @@ else
   # -ldl is needed for dlopen/dlsym used by GNU make's load.c
   export LDFLAGS="${LDFLAGS} -lrt -ldl"
   echo "build --action_env=LDFLAGS" >> .bazelrc
+  echo "build --host_action_env=PATH=${PATH}" >> .bazelrc
   echo "build --host_linkopt=-ldl" >> .bazelrc
 fi
 
