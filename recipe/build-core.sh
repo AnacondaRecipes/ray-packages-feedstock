@@ -47,9 +47,10 @@ if [[ "${target_platform}" == osx-* ]]; then
 else
   # Do not pass conda LDFLAGS (e.g. -fuse-ld=gold, -B) into Bazel: rules_foreign_cc
   # uses them when building host tools (e.g. GNU make bootstrap), and the C compiler
-  # then fails to create executables. We pass only the needed libs via linkopts below.
-  # Clear LDFLAGS for all Bazel actions so host tool builds (BootstrapGNUMake) do not
-  # inherit conda's LDFLAGS and fail with "C compiler cannot create executables".
+  # then fails to create executables. Unset LDFLAGS so the host C++ toolchain does not
+  # get these flags (the wrapper script builds LDFLAGS from the toolchain). We then
+  # pass only the needed libs via action_env and linkopts.
+  unset LDFLAGS
   echo "build --action_env=LDFLAGS=" >> .bazelrc
   echo "build --host_action_env=PATH=${PATH}" >> .bazelrc
   echo "build --host_action_env=LDFLAGS=-ldl" >> .bazelrc
