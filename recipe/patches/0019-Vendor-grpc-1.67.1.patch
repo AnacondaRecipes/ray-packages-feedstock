@@ -1,6 +1,6 @@
-From 884c45e5461a9bcfae6f787be82ba5e1fa3465d8 Mon Sep 17 00:00:00 2001
+From aea76ca3afcb35abfbd7c773188c8bcd911d273d Mon Sep 17 00:00:00 2001
 From: Patryk Kups <pkups@anaconda.com>
-Date: Sat, 28 Feb 2026 20:29:41 +0100
+Date: Sat, 28 Feb 2026 21:19:51 +0100
 Subject: [PATCH] Vendor grpc 1.67.1
 
 ---
@@ -10,8 +10,8 @@ Subject: [PATCH] Vendor grpc 1.67.1
  src/ray/rpc/server_call.h                     |  2 +-
  src/ray/util/event.cc                         |  2 +-
  .../grpc-configurable-thread-count.patch      | 12 +++++-----
- thirdparty/patches/grpc-zlib-fdopen.patch     | 13 ++++++-----
- 7 files changed, 32 insertions(+), 35 deletions(-)
+ thirdparty/patches/grpc-zlib-fdopen.patch     |  9 ++++----
+ 7 files changed, 30 insertions(+), 33 deletions(-)
 
 diff --git a/bazel/ray_deps_setup.bzl b/bazel/ray_deps_setup.bzl
 index b782022..d9fc53e 100644
@@ -175,7 +175,7 @@ index efdd53f..8dd4c30 100644
      RAY_CHECK(google::protobuf::util::MessageToJsonString(
                    export_event.task_event_data(), &event_data_as_string, options)
 diff --git a/thirdparty/patches/grpc-configurable-thread-count.patch b/thirdparty/patches/grpc-configurable-thread-count.patch
-index e17e111..85d486f 100644
+index e17e111..f0aa4f7 100644
 --- a/thirdparty/patches/grpc-configurable-thread-count.patch
 +++ b/thirdparty/patches/grpc-configurable-thread-count.patch
 @@ -1,7 +1,7 @@
@@ -183,10 +183,10 @@ index e17e111..85d486f 100644
 -index 670ca6551c..043021dc4a 100644
 ---- src/core/lib/gpr/linux/cpu.cc
 -+++ src/core/lib/gpr/linux/cpu.cc
-+diff --git a/src/core/util/linux/cpu.cc b/src/core/util/linux/cpu.cc
++diff --git src/core/util/linux/cpu.cc src/core/util/linux/cpu.cc
 +index aa232a6..2e63b90 100644
-+--- a/src/core/util/linux/cpu.cc
-++++ b/src/core/util/linux/cpu.cc
++--- src/core/util/linux/cpu.cc
+++++ src/core/util/linux/cpu.cc
  @@ -24,6 +24,7 @@
   
   #ifdef GPR_CPU_LINUX
@@ -207,20 +207,18 @@ index e17e111..85d486f 100644
 +     LOG(ERROR) << "Cannot determine number of CPUs: assuming 1";
       ncpus = 1;
 diff --git a/thirdparty/patches/grpc-zlib-fdopen.patch b/thirdparty/patches/grpc-zlib-fdopen.patch
-index 83dfba2..c3e1405 100644
+index 83dfba2..05fd698 100644
 --- a/thirdparty/patches/grpc-zlib-fdopen.patch
 +++ b/thirdparty/patches/grpc-zlib-fdopen.patch
 @@ -1,9 +1,10 @@
 -diff -u bazel/grpc_deps.bzl
----- bazel/grpc_deps.bzl
--+++ bazel/grpc_deps.bzl
++diff --git bazel/grpc_deps.bzl bazel/grpc_deps.bzl
++index e6fbf63..424d7d3 100644
+ --- bazel/grpc_deps.bzl
+ +++ bazel/grpc_deps.bzl
 -@@ -238,6 +238,9 @@
 -                 "https://storage.googleapis.com/grpc-bazel-mirror/github.com/madler/zlib/archive/04f42ceca40f73e2978b50e93806c2a18c1281fc.tar.gz",
 -                 "https://github.com/madler/zlib/archive/04f42ceca40f73e2978b50e93806c2a18c1281fc.tar.gz",
-+diff --git a/bazel/grpc_deps.bzl b/bazel/grpc_deps.bzl
-+index e6fbf63..424d7d3 100644
-+--- a/bazel/grpc_deps.bzl
-++++ b/bazel/grpc_deps.bzl
 +@@ -53,6 +53,9 @@ def grpc_deps():
 +                 "https://storage.googleapis.com/grpc-bazel-mirror/github.com/madler/zlib/archive/09155eaa2f9270dc4ed1fa13e2b4b2613e6e4851.tar.gz",
 +                 "https://github.com/madler/zlib/archive/09155eaa2f9270dc4ed1fa13e2b4b2613e6e4851.tar.gz",
