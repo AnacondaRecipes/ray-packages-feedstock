@@ -1,12 +1,6 @@
 #!/bin/bash
 set -xe
 
-# On Linux, force minimal LDFLAGS before any Bazel run so host toolchain and
-# rules_foreign_cc (BootstrapGNUMake) do not see conda's -fuse-ld=gold / -B.
-if [[ "${target_platform}" != osx-* ]]; then
-  export LDFLAGS="-ldl"
-fi
-
 bazel clean --expunge
 bazel shutdown
 
@@ -51,18 +45,8 @@ if [[ "${target_platform}" == osx-* ]]; then
   echo 'build --per_file_copt="spdlog/.*@-w"' >> .bazelrc
   echo 'build --per_file_copt="src/ray/.*$@-w"' >> .bazelrc
 else
-  # Do not pass conda LDFLAGS (e.g. -fuse-ld=gold, -B) into Bazel: rules_foreign_cc
-  # uses them when building host tools (e.g. GNU make bootstrap), and the C compiler
-  # then fails to create executables. Force minimal LDFLAGS for the whole build so
-  # the host C++ toolchain (and any compiler wrapper that reads LDFLAGS) sees only
-  # -ldl when the toolchain is configured and when the BootstrapGNUMake wrapper runs.
-  export LDFLAGS="-ldl"
-  echo "build --action_env=LDFLAGS=-ldl" >> .bazelrc
-  echo "build --host_action_env=PATH=${PATH}" >> .bazelrc
-  echo "build --host_action_env=LDFLAGS=-ldl" >> .bazelrc
+  export LDFLAGS="${LDFLAGS} -lrt"
   echo "build --host_linkopt=-ldl" >> .bazelrc
-  echo "build --host_linkopt=-fuse-ld=bfd" >> .bazelrc
-  echo "build --linkopt=-lrt" >> .bazelrc
 fi
 
 echo build --linkopt=-static-libstdc++ >> .bazelrc

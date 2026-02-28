@@ -18,6 +18,10 @@ source:
     - patches/0016-fix-redis-build-on-macos.patch  # [osx]
     - patches/0017-Don-t-use-Xcode-on-macOS.patch  # [osx]
     - patches/0018-Remove-runtime-agent-dependencies.patch
+    # See https://github.com/conda-forge/ray-packages-feedstock/issues/136
+    # Keep in sync with current or active migration of libgrpc to avoid
+    # ABI breakage
+    - patches/0019-Vendor-grpc-1.67.1.patch
     # - patches/0019-add-ldl-for-redis.patch  # [linux and x86_64]
 
 build:
