@@ -20,6 +20,10 @@ if [[ "${target_platform}" == linux-aarch64 ]]; then
 fi
 
 if [[ "${target_platform}" == osx-* ]]; then
+  # Force Bazel to use the C++-only toolchain (conda clang) instead of Xcode.
+  # Must be exported before any bazel command so the server and config see it.
+  export BAZEL_USE_CPP_ONLY_TOOLCHAIN=1
+
   # Pass down some environment variables. This is needed for https://github.com/ray-project/ray/blob/ray-2.3.0/bazel/BUILD.redis#L51.
   echo build --action_env=AR >> .bazelrc
   echo build --action_env=CC_FOR_BUILD >> .bazelrc
