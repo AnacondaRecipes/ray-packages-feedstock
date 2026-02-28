@@ -50,6 +50,7 @@ else
   export LDFLAGS="${LDFLAGS} -lrt -ldl"
   echo "build --action_env=LDFLAGS" >> .bazelrc
   echo "build --host_action_env=PATH=${PATH}" >> .bazelrc
+  echo "build --host_action_env=LDFLAGS=-ldl" >> .bazelrc
   echo "build --host_linkopt=-ldl" >> .bazelrc
 fi
 
