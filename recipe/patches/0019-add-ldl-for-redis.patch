@@ -1,10 +1,24 @@
+From ddcce70af5a25273957cd581b35878f0a34059ba Mon Sep 17 00:00:00 2001
+From: Patryk Kups <pkups@anaconda.com>
+Date: Sat, 28 Feb 2026 14:21:23 +0100
+Subject: [PATCH] add ldl for redis
+
+---
+ bazel/redis.BUILD | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/bazel/redis.BUILD b/bazel/redis.BUILD
+index 15f31b9..577664b 100644
 --- a/bazel/redis.BUILD
 +++ b/bazel/redis.BUILD
-@@ -27,6 +27,7 @@ make(
-         "-Wno-empty-body",
-         "-fPIC",
+@@ -22,6 +22,7 @@ make(
+     args = [
+         "BUILD_TLS=yes",
+         "-s",
++        'LDFLAGS=$(LDFLAGS) -ldl',
      ],
-+    linkopts = ["-ldl"],
-     visibility = ["//visibility:public"],
-     lib_source = ":all_srcs",
-     deps = [
+     copts = [
+         "-DLUA_USE_MKSTEMP",
+-- 
+2.39.5 (Apple Git-154)
+
