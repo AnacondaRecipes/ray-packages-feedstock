@@ -7,8 +7,12 @@ bazel shutdown
 # Fix: Bazel linux-sandbox restricts PATH to /bin:/usr/bin:/usr/local/bin
 # This means it can't find python3 or other conda-env tools during builds.
 # Propagate the full conda PATH into every Bazel action via action_env.
+# host_action_env is required for exec-configuration actions (e.g. rules_foreign_cc
+# BootstrapGNUMake); without it "C compiler cannot create executables" on linux-64.
 echo "build --action_env=PATH=${PATH}" >> .bazelrc
 echo "build --action_env=PYTHONPATH=${PYTHONPATH:-}" >> .bazelrc
+echo "build --host_action_env=PATH=${PATH}" >> .bazelrc
+echo "build --host_action_env=PYTHONPATH=${PYTHONPATH:-}" >> .bazelrc
 
 if [[ "${target_platform}" == linux-aarch64 ]]; then
   # Fix -Werror=stringop-overflow error
