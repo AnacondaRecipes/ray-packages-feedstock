@@ -9,10 +9,12 @@ bazel shutdown
 # Propagate the full conda PATH into every Bazel action via action_env.
 # host_action_env is required for exec-configuration actions (e.g. rules_foreign_cc
 # BootstrapGNUMake); without it "C compiler cannot create executables" on linux-64.
-echo "build --action_env=PATH=${PATH}" >> .bazelrc
-echo "build --action_env=PYTHONPATH=${PYTHONPATH:-}" >> .bazelrc
-echo "build --host_action_env=PATH=${PATH}" >> .bazelrc
-echo "build --host_action_env=PYTHONPATH=${PYTHONPATH:-}" >> .bazelrc
+if [[ "${target_platform}" == linux-64 ]]; then
+  echo "build --action_env=PATH=${PATH}" >> .bazelrc
+  echo "build --action_env=PYTHONPATH=${PYTHONPATH:-}" >> .bazelrc
+  echo "build --host_action_env=PATH=${PATH}" >> .bazelrc
+  echo "build --host_action_env=PYTHONPATH=${PYTHONPATH:-}" >> .bazelrc
+fi
 
 if [[ "${target_platform}" == linux-aarch64 ]]; then
   # Fix -Werror=stringop-overflow error
@@ -24,12 +26,10 @@ if [[ "${target_platform}" == linux-aarch64 ]]; then
 fi
 
 if [[ "${target_platform}" == osx-* ]]; then
-  # Force Bazel to use the C++-only toolchain (conda clang) instead of Xcode.
-  # Set in env for the current process and push through .bazelrc so repo rules
-  # and actions see it even if subprocess env is stripped.
-  export BAZEL_USE_CPP_ONLY_TOOLCHAIN=1
-  echo "build --repo_env=BAZEL_USE_CPP_ONLY_TOOLCHAIN=1" >> .bazelrc
-  echo "build --action_env=BAZEL_USE_CPP_ONLY_TOOLCHAIN=1" >> .bazelrc
+  # Force Bazel to use the conda C++ toolchain instead of Bazel’s Apple toolchain.
+  export BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+  export DEVELOPER_DIR=/Library/Developer/CommandLineTools
+  export SDKROOT=${CONDA_BUILD_SYSROOT}
 
   # Pass down some environment variables. This is needed for https://github.com/ray-project/ray/blob/ray-2.3.0/bazel/BUILD.redis#L51.
   echo build --action_env=AR >> .bazelrc
@@ -57,12 +57,14 @@ if [[ "${target_platform}" == osx-* ]]; then
   echo 'build --per_file_copt="src/ray/.*$@-w"' >> .bazelrc
 else
   export LDFLAGS="${LDFLAGS} -lrt"
-  echo "build --host_linkopt=-ldl" >> .bazelrc
+  if [[ "${target_platform}" == linux-64 ]]; then
+    echo "build --host_linkopt=-ldl" >> .bazelrc
+  fi
 fi
 
 echo build --linkopt=-static-libstdc++ >> .bazelrc
 echo build --linkopt=-lm >> .bazelrc
-echo build --linkopt=-ldl >> .bazelrc
+# echo build --linkopt=-ldl >> .bazelrc
 
 # To debug, uncomment this
 echo build --sandbox_debug >> .bazelrc
@@ -77,6 +79,24 @@ if [[ "${target_platform}" == linux-aarch64 ]]; then
     if [ ! -f "${BUILD_PREFIX}/bin/ar" ]; then ln -s "${AR}" "${BUILD_PREFIX}/bin/ar"; fi
     if [ ! -f "${BUILD_PREFIX}/bin/ranlib" ]; then ln -s "${RANLIB}" "${BUILD_PREFIX}/bin/ranlib"; fi
     if [ ! -f "${BUILD_PREFIX}/bin/ld" ]; then ln -s "${LD}" "${BUILD_PREFIX}/bin/ld"; fi
+    if [ ! -f "${BUILD_PREFIX}/bin/gcc" ]; then ln -s "${CC}" "${BUILD_PREFIX}/bin/gcc"; fi
+    if [ ! -f "${BUILD_PREFIX}/bin/g++" ]; then ln -s "${CXX}" "${BUILD_PREFIX}/bin/g++"; fi
+    if [ ! -f "${BUILD_PREFIX}/bin/strip" ]; then ln -s "${STRIP}" "${BUILD_PREFIX}/bin/strip"; fi
+fi
+
+# linux-64: rules_foreign_cc BootstrapGNUMake configure fails with "C compiler cannot
+# create executables" unless ld/ld.gold and other tools are found via symlinks.
+if [[ "${target_platform}" == linux-64 ]]; then
+    echo build --action_env=BUILD_PREFIX=${BUILD_PREFIX} >> .bazelrc
+    if [ ! -f "${BUILD_PREFIX}/bin/ar" ]; then ln -s "${AR}" "${BUILD_PREFIX}/bin/ar"; fi
+    if [ ! -f "${BUILD_PREFIX}/bin/ranlib" ]; then ln -s "${RANLIB}" "${BUILD_PREFIX}/bin/ranlib"; fi
+    if [ ! -f "${BUILD_PREFIX}/bin/ld" ]; then ln -s "${LD}" "${BUILD_PREFIX}/bin/ld"; fi
+    for gold_ld in "${BUILD_PREFIX}/bin"/*-ld.gold; do
+      if [ -x "$gold_ld" ] && [ ! -f "${BUILD_PREFIX}/bin/ld.gold" ]; then
+        ln -s "$(basename "$gold_ld")" "${BUILD_PREFIX}/bin/ld.gold"
+        break
+      fi
+    done
     if [ ! -f "${BUILD_PREFIX}/bin/gcc" ]; then ln -s "${CC}" "${BUILD_PREFIX}/bin/gcc"; fi
     if [ ! -f "${BUILD_PREFIX}/bin/g++" ]; then ln -s "${CXX}" "${BUILD_PREFIX}/bin/g++"; fi
     if [ ! -f "${BUILD_PREFIX}/bin/strip" ]; then ln -s "${STRIP}" "${BUILD_PREFIX}/bin/strip"; fi

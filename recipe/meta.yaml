@@ -101,8 +101,8 @@ outputs:
       # Skip overlinking check for _raylet.so: Bazel-built binary uses ELF dynamic
       # tag 1879047926 (processor-specific) that conda-build's LIEF does not recognize,
       # causing "ValueError: 1879047926 is not a valid TAG" in post_process.
-      overlinking_ignore_patterns:
-        - "*_raylet.so"
+      overlinking_ignore_patterns:  # [linux and aarch64]
+        - "*_raylet.so"             # [linux and aarch64]
     requirements:
       build:
         - {{ compiler('c') }}
