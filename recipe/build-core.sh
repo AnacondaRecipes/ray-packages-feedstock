@@ -7,8 +7,8 @@ bazel shutdown
 if [[ "${target_platform}" == linux-aarch64 ]]; then
   # Execution platform: @local_config_platform//:host
   # /usr/bin/env: 'python3': No such file or directory
-  echo "build --action_env=PYTHONPATH=${PYTHONPATH:-}" >> .bazelrc
-  echo "build --host_action_env=PYTHONPATH=${PYTHONPATH:-}" >> .bazelrc
+  echo "build --action_env=PATH=${PATH}" >> .bazelrc
+  echo "build --host_action_env=PATH=${PATH}" >> .bazelrc
   # Fix -Werror=stringop-overflow error
   echo 'build --per_file_copt="external/upb/upbc/protoc-gen-upbdefs\.cc@-w"' >> .bazelrc
   echo 'build --host_per_file_copt="external/upb/upbc/protoc-gen-upbdefs\.cc@-w"' >> .bazelrc
