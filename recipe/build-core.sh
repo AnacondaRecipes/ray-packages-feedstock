@@ -58,7 +58,6 @@ fi
 
 echo build --linkopt=-static-libstdc++ >> .bazelrc
 echo build --linkopt=-lm >> .bazelrc
-# echo build --linkopt=-ldl >> .bazelrc
 
 # To debug, uncomment this
 echo build --sandbox_debug >> .bazelrc
