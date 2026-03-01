@@ -58,12 +58,13 @@ if [[ "${target_platform}" == osx-* ]]; then
   echo 'build --per_file_copt="src/ray/.*$@-w"' >> .bazelrc
 
   # Abseil 20240722 enables header_modules/parse_headers; with the conda toolchain on
-  # darwin_arm64 this leads to "missing dependency declarations" for .cppmap files in
-  # @com_google_absl//absl/flags:usage_internal. Disable these features on macOS.
-  echo 'build --features=-header_modules' >> .bazelrc
-  echo 'build --features=-parse_headers' >> .bazelrc
-  echo 'build --host_features=-header_modules' >> .bazelrc
-  echo 'build --host_features=-parse_headers' >> .bazelrc
+  # darwin_arm64 this leads to "missing dependency declarations" for .cppmap files
+  # (e.g. usage_internal, bad_optional_access). Disable via features and force compiler
+  # to ignore modules so the build succeeds regardless of toolchain defaults.
+  echo 'build --features=-header_modules,-parse_headers,-layering_check' >> .bazelrc
+  echo 'build --host_features=-header_modules,-parse_headers,-layering_check' >> .bazelrc
+  echo 'build --copt=-fno-cxx-modules' >> .bazelrc
+  echo 'build --host_copt=-fno-cxx-modules' >> .bazelrc
 else
   export LDFLAGS="${LDFLAGS} -lrt"
   if [[ "${target_platform}" == linux-64 ]]; then
@@ -94,9 +95,15 @@ if [[ "${target_platform}" == linux-aarch64 ]]; then
 fi
 
 # linux-64: rules_foreign_cc BootstrapGNUMake configure fails with "C compiler cannot
-# create executables" unless ld/ld.gold and other tools are found via symlinks.
+# create executables" unless ld/ld.gold and other tools are found via symlinks, and
+# unless host/exec actions see conda LDFLAGS/CFLAGS so the configure link test finds libs.
 if [[ "${target_platform}" == linux-64 ]]; then
     echo build --action_env=BUILD_PREFIX=${BUILD_PREFIX} >> .bazelrc
+    echo "build --host_action_env=BUILD_PREFIX=${BUILD_PREFIX}" >> .bazelrc
+    # Pass conda toolchain flags to exec/host so BootstrapGNUMake configure can link test binaries.
+    [[ -n "${LDFLAGS}" ]] && echo "build --host_action_env=LDFLAGS=\"${LDFLAGS}\"" >> .bazelrc
+    [[ -n "${CFLAGS}" ]] && echo "build --host_action_env=CFLAGS=\"${CFLAGS}\"" >> .bazelrc
+    [[ -n "${LIBRARY_PATH}" ]] && echo "build --host_action_env=LIBRARY_PATH=\"${LIBRARY_PATH}\"" >> .bazelrc
     if [ ! -f "${BUILD_PREFIX}/bin/ar" ]; then ln -s "${AR}" "${BUILD_PREFIX}/bin/ar"; fi
     if [ ! -f "${BUILD_PREFIX}/bin/ranlib" ]; then ln -s "${RANLIB}" "${BUILD_PREFIX}/bin/ranlib"; fi
     if [ ! -f "${BUILD_PREFIX}/bin/ld" ]; then ln -s "${LD}" "${BUILD_PREFIX}/bin/ld"; fi
