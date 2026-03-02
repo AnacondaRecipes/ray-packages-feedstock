@@ -5,10 +5,6 @@ bazel clean --expunge
 bazel shutdown
 
 if [[ "${target_platform}" == linux-aarch64 ]]; then
-  # Execution platform: @local_config_platform//:host
-  # /usr/bin/env: 'python3': No such file or directory
-  echo "build --action_env=PATH=${PATH}" >> .bazelrc
-  echo "build --host_action_env=PATH=${PATH}" >> .bazelrc
   # Fix -Werror=stringop-overflow error
   echo 'build --per_file_copt="external/upb/upbc/protoc-gen-upbdefs\.cc@-w"' >> .bazelrc
   echo 'build --host_per_file_copt="external/upb/upbc/protoc-gen-upbdefs\.cc@-w"' >> .bazelrc
@@ -54,6 +50,10 @@ if [[ "${target_platform}" == osx-* ]]; then
   echo 'build --per_file_copt="src/ray/.*$@-w"' >> .bazelrc
 else
   export LDFLAGS="${LDFLAGS} -lrt"
+  # Execution platform: @local_config_platform//:host
+  # /usr/bin/env: 'python3': No such file or directory
+  echo "build --action_env=PATH=${PATH}" >> .bazelrc
+  echo "build --host_action_env=PATH=${PATH}" >> .bazelrc
 fi
 
 echo build --linkopt=-static-libstdc++ >> .bazelrc
