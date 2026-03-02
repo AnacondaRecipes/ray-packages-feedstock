@@ -16,6 +16,8 @@ fi
 if [[ "${target_platform}" == linux-64 ]]; then
   # ./src/load.o:load.c:function load_file: error: undefined reference to 'dlsym'
   echo "build --host_linkopt=-ldl" >> .bazelrc
+  # Fix undefined reference to symbol 'acos@@GLIBC_2.2.5'
+  echo build --host_linkopt=-lm >> .bazelrc
 fi
 
 if [[ "${target_platform}" == osx-* ]]; then
