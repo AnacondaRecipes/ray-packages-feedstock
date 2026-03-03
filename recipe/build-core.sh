@@ -47,7 +47,11 @@ if [[ "${target_platform}" == osx-* ]]; then
   echo build --host_linkopt=-isysroot${CONDA_BUILD_SYSROOT} >> .bazelrc
   echo build --host_linkopt=-mmacosx-version-min=${macos_min_version} >> .bazelrc
 
-  # We get come warnings that are transformed to errors. Downgrade them to warnings.
+  # Disable Clang module maps to avoid undeclared inclusion errors in Abseil
+  # (spinlock_wait.cc vs config.cppmap / type_traits.cppmap).
+  echo 'build --features=-module_maps' >> .bazelrc
+
+  # We get some warnings that are transformed to errors. Downgrade them to warnings.
   echo 'build --per_file_copt="spdlog/.*@-w"' >> .bazelrc
   echo 'build --per_file_copt="src/ray/.*$@-w"' >> .bazelrc
 else

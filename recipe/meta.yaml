@@ -22,6 +22,7 @@ source:
     # Keep in sync with current or active migration of libgrpc to avoid
     # ABI breakage
     - patches/0019-Vendor-grpc-1.67.1.patch
+    - patches/0020-fix-missing-zlib-dependency-declarations.patch
 
 build:
   number: 0

@@ -1,0 +1,61 @@
+From 00acf95f25bb74a9635ba487be971b894071b00e Mon Sep 17 00:00:00 2001
+From: Eric Lundby <Eric.Lundby@gmail.com>
+Date: Tue, 3 Mar 2026 10:29:08 -0700
+Subject: [PATCH] fix missing zlib dependency declarations
+
+Fixes errors such as:
+
+ERROR: /external/boost/BUILD.bazel:1147:14: Compiling libs/iostreams/src/zlib.cpp failed: undeclared inclusion(s) in rule '@boost//:iostreams':
+this rule is missing dependency declarations for the following files included by 'libs/iostreams/src/zlib.cpp':
+  'external/net_zlib_zlib/zlib.h'
+  'external/net_zlib_zlib/zconf.h'
+
+---
+ bazel/ray_deps_setup.bzl                      |  1 +
+ .../rules_boost-zlib-system-headers.patch     | 22 +++++++++++++++++++
+ 2 files changed, 23 insertions(+)
+ create mode 100644 thirdparty/patches/rules_boost-zlib-system-headers.patch
+
+diff --git a/bazel/ray_deps_setup.bzl b/bazel/ray_deps_setup.bzl
+index d9fc53e810..f90bc9a3ad 100644
+--- a/bazel/ray_deps_setup.bzl
++++ b/bazel/ray_deps_setup.bzl
+@@ -165,6 +165,7 @@ def ray_deps_setup():
+         sha256 = "490d11425393eed068966a4990ead1ff07c658f823fd982fddac67006ccc44ab",
+         patches = [
+             "//thirdparty/patches:boost-headers.patch",
++            "//thirdparty/patches:rules_boost-zlib-system-headers.patch",
+         ],
+         patch_args = ["-p1"],
+     )
+diff --git a/thirdparty/patches/rules_boost-zlib-system-headers.patch b/thirdparty/patches/rules_boost-zlib-system-headers.patch
+new file mode 100644
+index 0000000000..e0247873f2
+--- /dev/null
++++ b/thirdparty/patches/rules_boost-zlib-system-headers.patch
+@@ -0,0 +1,22 @@
++diff --git a/BUILD.zlib b/BUILD.zlib
++--- a/BUILD.zlib
+++++ b/BUILD.zlib
++@@ -55,5 +55,7 @@ cc_library(
++ # For OSs that bundle libz
++ cc_library(
++     name = "zlib_system",
+++    hdrs = ["zlib.h", "zconf.h"],
+++    includes = ["."],
++     linkopts = ["-lz"],
++ )
++diff --git a/BUILD.bzip2 b/BUILD.bzip2
++--- a/BUILD.bzip2
+++++ b/BUILD.bzip2
++@@ -35,5 +35,7 @@ cc_library(
++ # For OSs that bundle bz2lib
++ cc_library(
++     name = "bz2lib_system",
+++    hdrs = ["bzlib.h"],
+++    includes = ["."],
++     linkopts = ["-lbz2"],
++ )
+-- 
+2.50.1 (Apple Git-155)
+
