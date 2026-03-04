@@ -82,7 +82,6 @@ outputs:
         - {{ pin_subpackage('ray-serve-grpc', exact=True) }}
         - {{ pin_subpackage('ray-tune', exact=True) }}
         - {{ pin_subpackage('ray-train', exact=True) }}
-
     test:
       imports:
         - ray
@@ -141,23 +140,18 @@ outputs:
         - setproctitle ==1.2.2
         - colorama
         - aiohttp
-
     test:
       imports:
-        # Skip on osx-arm64 to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
-        - ray                           # [not osx]
-        - ray._raylet                   # [not osx]
-        - ray.actor                     # [not osx]
-        - ray.runtime_context           # [not osx]
-        - ray._private.state            # [not osx]
-        - ray._private.worker           # [not osx]
+        - ray
+        - ray._raylet
+        - ray.actor
+        - ray.runtime_context
+        - ray._private.state
+        - ray._private.worker
       commands:
-        # 'ray stop' sends a SIGTERM to ray processes to ensure a clean slate
-        # Skip on osx to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
-        - ray --help                  # [not osx]
-        - ray start --head --verbose  # [not osx]
-        - ray stop --verbose          # [not osx]
-        
+        - ray --help
+        - ray start --head --verbose
+        - ray stop --verbose
 
   - name: ray-default
     build:
@@ -183,16 +177,10 @@ outputs:
         - prometheus_client >=0.7.1
         - smart_open
         - virtualenv >=20.0.24,!=20.21.1
-
     test:
       imports:
-      # Skip on osx-arm64 to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
-        # ray-default is a convenience wrapper with no imports of its own
-        - ray                           # [not osx]
-        # init-code seemingly depends on platform or other ambient things;
-        # the following doesn't get triggered in CI, but was a problem in
-        # https://github.com/conda-forge/ray-packages-feedstock/issues/16
-        - ray._private.metrics_agent    # [not osx]
+        - ray
+        - ray._private.metrics_agent
 
   - name: ray-dashboard
     build:
@@ -215,13 +203,11 @@ outputs:
         - async-timeout
     test:
       imports:
-        - ray.dashboard                                         # [not osx]
+        - ray.dashboard
       commands:
-        # 'ray stop' sends a SIGTERM to ray processes to ensure a clean slate
-        # Skip on osx to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
-        - ray --help                                            # [not osx]
-        - ray start --head --include-dashboard=true --verbose   # [not osx]
-        - ray stop --verbose                                    # [not osx]
+        - ray --help
+        - ray start --head --include-dashboard=true --verbose
+        - ray stop --verbose
 
   - name: ray-debug
     requirements:
@@ -234,8 +220,7 @@ outputs:
         - py-spy >=0.4.0  # [py>=312]
     test:
       imports:
-        # there doesn't appear to be a debug specific module
-        - ray                                               # [not osx]
+        - ray
 
   - name: ray-client
     build:
@@ -249,8 +234,7 @@ outputs:
         - grpcio  # [win or linux]
     test:
       imports:
-        # there doesn't appear to be a client module, not sure how to test this
-        - ray                                             # [not osx]
+        - ray
 
   - name: ray-rllib
     build:
@@ -268,7 +252,8 @@ outputs:
         - scipy
     test:
       imports:
-        - ray.rllib                                       # [not osx]
+        - ray.rllib
+
   - name: ray-data
     requirements:
       host:
@@ -282,7 +267,7 @@ outputs:
         - fsspec
     test:
       imports:
-        - ray.data                                      # [not osx]
+        - ray.data
 
   - name: ray-serve
     build:
@@ -301,7 +286,7 @@ outputs:
         - watchfiles
     test:
       imports:
-        - ray.serve                                     # [not osx]
+        - ray.serve
 
   - name: ray-serve-grpc
     build:
@@ -316,7 +301,7 @@ outputs:
         - grpcio >=1.42.0
     test:
       imports:
-        - ray.serve                                     # [not osx]
+        - ray.serve
 
   - name: ray-tune
     build:
@@ -334,10 +319,9 @@ outputs:
         - requests
         - pyarrow >=9.0.0
         - fsspec
-        
     test:
       imports:
-        - ray.tune                                    # [not osx]
+        - ray.tune
 
   - name: ray-train
     requirements:
@@ -348,7 +332,7 @@ outputs:
         - {{ pin_subpackage('ray-tune', exact=True) }}
     test:
       imports:
-        - ray.train                                   # [not osx]
+        - ray.train
 
   # the various ray[extra] installs, alphabetically
   - name: ray-adag
@@ -364,7 +348,7 @@ outputs:
         - cupy  # [not osx]
     test:
       imports:
-        - ray.dag                                     # [not osx]
+        - ray.dag
 
   - name: ray-air
     build:
@@ -379,7 +363,7 @@ outputs:
         - {{ pin_subpackage('ray-tune', exact=True) }}
     test:
       imports:
-        - ray.air                                 # [not osx]
+        - ray.air
 
   - name: ray-observability
     build:
@@ -391,8 +375,8 @@ outputs:
         - {{ pin_subpackage('ray-default', exact=True) }}
         - memray  # [not win]
     test:
-      commands:
-        - echo "no tests for ray-observability, it is a convenience bundle"
+      imports:
+        - ray
 
 about:
   home: https://www.ray.io
