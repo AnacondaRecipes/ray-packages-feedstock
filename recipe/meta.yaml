@@ -66,8 +66,7 @@ outputs:
       host:
       run:
         - python
-        # Skipped dependencies are commented out, see below for details
-        #- {{ pin_subpackage('ray-adag', exact=True) }}
+        - {{ pin_subpackage('ray-adag', exact=True) }}
         # autoscaler is completely disabled for now as it's missing a bunch of dependencies
         # and there's not much interest in adding them (yet).
         # autoscaler does not work on Windows, no point of building it; see below
@@ -86,9 +85,7 @@ outputs:
 
     test:
       imports:
-        # dummy test; actual tests are in subpackages
-        # Skip on osx-arm64 to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
-        - ray       # [not (osx and arm64)]
+        - ray
 
   - name: ray-core
     script: build-core.sh  # [not win]
@@ -148,12 +145,12 @@ outputs:
     test:
       imports:
         # Skip on osx-arm64 to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
-        - ray                           # [not (osx and arm64)]
-        - ray._raylet                   # [not (osx and arm64)]
-        - ray.actor                     # [not (osx and arm64)]
-        - ray.runtime_context           # [not (osx and arm64)]
-        - ray._private.state            # [not (osx and arm64)]
-        - ray._private.worker           # [not (osx and arm64)]
+        - ray                           # [not osx]
+        - ray._raylet                   # [not osx]
+        - ray.actor                     # [not osx]
+        - ray.runtime_context           # [not osx]
+        - ray._private.state            # [not osx]
+        - ray._private.worker           # [not osx]
       commands:
         # 'ray stop' sends a SIGTERM to ray processes to ensure a clean slate
         # Skip on osx to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
@@ -191,11 +188,11 @@ outputs:
       imports:
       # Skip on osx-arm64 to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
         # ray-default is a convenience wrapper with no imports of its own
-        - ray                           # [not (osx and arm64)]
+        - ray                           # [not osx]
         # init-code seemingly depends on platform or other ambient things;
         # the following doesn't get triggered in CI, but was a problem in
         # https://github.com/conda-forge/ray-packages-feedstock/issues/16
-        - ray._private.metrics_agent    # [not (osx and arm64)]
+        - ray._private.metrics_agent    # [not osx]
 
   - name: ray-dashboard
     build:
@@ -218,7 +215,7 @@ outputs:
         - async-timeout
     test:
       imports:
-        - ray.dashboard                                         # [not (osx and arm64)]
+        - ray.dashboard                                         # [not osx]
       commands:
         # 'ray stop' sends a SIGTERM to ray processes to ensure a clean slate
         # Skip on osx to prevent "Too many open files" error on CI, run tests locally to confirm they pass on OSX
@@ -238,7 +235,7 @@ outputs:
     test:
       imports:
         # there doesn't appear to be a debug specific module
-        - ray                                               # [not (osx and arm64)]
+        - ray                                               # [not osx]
 
   - name: ray-client
     build:
@@ -253,7 +250,7 @@ outputs:
     test:
       imports:
         # there doesn't appear to be a client module, not sure how to test this
-        - ray                                             # [not (osx and arm64)]
+        - ray                                             # [not osx]
 
   - name: ray-rllib
     build:
@@ -271,7 +268,7 @@ outputs:
         - scipy
     test:
       imports:
-        - ray.rllib                                       # [not (osx and arm64)]
+        - ray.rllib                                       # [not osx]
   - name: ray-data
     requirements:
       host:
@@ -285,7 +282,7 @@ outputs:
         - fsspec
     test:
       imports:
-        - ray.data                                      # [not (osx and arm64)]
+        - ray.data                                      # [not osx]
 
   - name: ray-serve
     build:
@@ -304,7 +301,7 @@ outputs:
         - watchfiles
     test:
       imports:
-        - ray.serve                                     # [not (osx and arm64)]
+        - ray.serve                                     # [not osx]
 
   - name: ray-serve-grpc
     build:
@@ -319,7 +316,7 @@ outputs:
         - grpcio >=1.42.0
     test:
       imports:
-        - ray.serve                                     # [not (osx and arm64)]
+        - ray.serve                                     # [not osx]
 
   - name: ray-tune
     build:
@@ -340,7 +337,7 @@ outputs:
         
     test:
       imports:
-        - ray.tune                                    # [not (osx and arm64)]
+        - ray.tune                                    # [not osx]
 
   - name: ray-train
     requirements:
@@ -351,22 +348,23 @@ outputs:
         - {{ pin_subpackage('ray-tune', exact=True) }}
     test:
       imports:
-        - ray.train                                   # [not (osx and arm64)]
+        - ray.train                                   # [not osx]
 
   # the various ray[extra] installs, alphabetically
   - name: ray-adag
     build:
-      # cupy-cuda12x is not available
-      skip: True
     requirements:
       host:
         - python
       run:
         - python
-        - cupy-cuda12x  # [not osx]
+        - {{ pin_subpackage('ray-default', exact=True) }}
+        # cupy is pinned instead of making cupy-cuda12x available
+        # resolver will pick the best cuda variant
+        - cupy  # [not osx]
     test:
       imports:
-        - ray.dag                                     # [not (osx and arm64)]
+        - ray.dag                                     # [not osx]
 
   - name: ray-air
     build:
@@ -381,7 +379,7 @@ outputs:
         - {{ pin_subpackage('ray-tune', exact=True) }}
     test:
       imports:
-        - ray.air                                 # [not (osx and arm64)]
+        - ray.air                                 # [not osx]
 
   - name: ray-observability
     build:

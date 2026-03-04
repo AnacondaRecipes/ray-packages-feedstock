@@ -18,7 +18,6 @@ echo build --jobs=1 >> ..\.bazelrc
 
 rem fix for issue: command is longer than CreateProcessW's limit (32767 characters)
 echo build --features=compiler_param_file >> ..\.bazelrc
-echo build --features=support_param_file >> ..\.bazelrc
 
 "%PYTHON%" -m pip install . --no-deps --no-build-isolation
 rem remember the return code
