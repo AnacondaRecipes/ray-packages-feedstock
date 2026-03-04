@@ -23,6 +23,7 @@ source:
     # ABI breakage
     - patches/0019-Vendor-grpc-1.67.1.patch
     - patches/0020-fix-missing-zlib-dependency-declarations.patch
+    - patches/0021-win-fix-invalid-includes.patch # [win]
 
 build:
   number: 0

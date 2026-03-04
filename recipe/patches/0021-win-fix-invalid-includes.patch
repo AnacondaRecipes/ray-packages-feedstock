@@ -1,0 +1,75 @@
+From 90a7cd6b4cc0535984800970eecd148a40aa1f19 Mon Sep 17 00:00:00 2001
+From: Eric Lundby <Eric.Lundby@gmail.com>
+Date: Wed, 4 Mar 2026 13:05:37 -0700
+Subject: [PATCH 1/1] win-fix-invalid-includes
+
+Fix clang style includes that break on msvc.
+
+---
+ bazel/ray_deps_setup.bzl                      |  1 +
+ .../patches/rules_boost-lzma-windows.patch    | 41 +++++++++++++++++++
+ 2 files changed, 42 insertions(+)
+ create mode 100644 thirdparty/patches/rules_boost-lzma-windows.patch
+
+diff --git a/bazel/ray_deps_setup.bzl b/bazel/ray_deps_setup.bzl
+index f90bc9a3ad..9ce1c1bb7b 100644
+--- a/bazel/ray_deps_setup.bzl
++++ b/bazel/ray_deps_setup.bzl
+@@ -166,6 +166,7 @@ def ray_deps_setup():
+         patches = [
+             "//thirdparty/patches:boost-headers.patch",
+             "//thirdparty/patches:rules_boost-zlib-system-headers.patch",
++            "//thirdparty/patches:rules_boost-lzma-windows.patch",
+         ],
+         patch_args = ["-p1"],
+     )
+diff --git a/thirdparty/patches/rules_boost-lzma-windows.patch b/thirdparty/patches/rules_boost-lzma-windows.patch
+new file mode 100644
+index 0000000000..8f0ef7aec6
+--- /dev/null
++++ b/thirdparty/patches/rules_boost-lzma-windows.patch
+@@ -0,0 +1,41 @@
++diff --git a/BUILD.lzma b/BUILD.lzma
++--- a/BUILD.lzma
+++++ b/BUILD.lzma
++@@ -147,26 +147,25 @@
++     copts = select({
++         "@platforms//os:windows": [],
++         "//conditions:default": ["-std=c99"],
++-    }) + [
++-        "-I external/org_lzma_lzma/src/common",
++-        "-I external/org_lzma_lzma/src/liblzma",
++-        "-I external/org_lzma_lzma/src/liblzma/api",
++-        "-I external/org_lzma_lzma/src/liblzma/common",
++-        "-I external/org_lzma_lzma/src/liblzma/check",
++-        "-I external/org_lzma_lzma/src/liblzma/delta",
++-        "-I external/org_lzma_lzma/src/liblzma/lz",
++-        "-I external/org_lzma_lzma/src/liblzma/lzma",
++-        "-I external/org_lzma_lzma/src/liblzma/rangecoder",
++-        "-I external/org_lzma_lzma/src/liblzma/simple",
++-    ],
+++    }),
++     defines = select({
++         "@platforms//os:windows": ["LZMA_API_STATIC"],
++         "//conditions:default": [],
++     }),
++     includes = [
+++        "src/common",
+++        "src/liblzma",
++         "src/liblzma/api",
+++        "src/liblzma/common",
+++        "src/liblzma/check",
+++        "src/liblzma/delta",
+++        "src/liblzma/lz",
+++        "src/liblzma/lzma",
+++        "src/liblzma/rangecoder",
+++        "src/liblzma/simple",
++     ],
++     linkopts = select({
++         "@platforms//os:android": [],
+++        "@platforms//os:windows": [],
++         "//conditions:default": ["-lpthread"],
++     }),
+-- 
+2.50.1 (Apple Git-155)
+
