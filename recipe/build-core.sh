@@ -56,20 +56,16 @@ if [[ "${target_platform}" == osx-* ]]; then
   echo 'build --per_file_copt="src/ray/.*$@-w"' >> .bazelrc
 else
   export LDFLAGS="${LDFLAGS} -lrt"
-  # Execution platform: @local_config_platform//:host
-  # /usr/bin/env: 'python3': No such file or directory
-  echo "build --action_env=PATH=${PATH}" >> .bazelrc
-  echo "build --host_action_env=PATH=${PATH}" >> .bazelrc
 fi
 
 echo build --linkopt=-static-libstdc++ >> .bazelrc
 echo build --linkopt=-lm >> .bazelrc
 
 # To debug, uncomment this
-echo build --sandbox_debug >> .bazelrc
-echo build --subcommands >> .bazelrc
-echo build --verbose_failures >> .bazelrc
-echo build --spawn_strategy=standalone >> .bazelrc
+# echo build --sandbox_debug >> .bazelrc
+# echo build --subcommands >> .bazelrc
+# echo build --verbose_failures >> .bazelrc
+# echo build --spawn_strategy=standalone >> .bazelrc
 
 # For some weird reason, build tools are not picked up on linux-aarch64
 if [[ "${target_platform}" == linux-aarch64 ]]; then
