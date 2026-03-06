@@ -13,7 +13,19 @@ if [[ "${target_platform}" == linux-aarch64 ]]; then
   echo 'build --local_cpu_resources=2' >> .bazelrc
 fi
 
+if [[ "${target_platform}" == linux-64 ]]; then
+  # ./src/load.o:load.c:function load_file: error: undefined reference to 'dlsym'
+  echo "build --host_linkopt=-ldl" >> .bazelrc
+  # Fix undefined reference to symbol 'acos@@GLIBC_2.2.5'
+  echo build --host_linkopt=-lm >> .bazelrc
+fi
+
 if [[ "${target_platform}" == osx-* ]]; then
+  # Force Bazel to use the conda C++ toolchain instead of Bazel’s Apple toolchain.
+  export BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+  export DEVELOPER_DIR=/Library/Developer/CommandLineTools
+  export SDKROOT=${CONDA_BUILD_SYSROOT}
+
   # Pass down some environment variables. This is needed for https://github.com/ray-project/ray/blob/ray-2.3.0/bazel/BUILD.redis#L51.
   echo build --action_env=AR >> .bazelrc
   echo build --action_env=CC_FOR_BUILD >> .bazelrc
@@ -35,11 +47,19 @@ if [[ "${target_platform}" == osx-* ]]; then
   echo build --host_linkopt=-isysroot${CONDA_BUILD_SYSROOT} >> .bazelrc
   echo build --host_linkopt=-mmacosx-version-min=${macos_min_version} >> .bazelrc
 
-  # We get come warnings that are transformed to errors. Downgrade them to warnings.
+  # Disable Clang module maps to avoid undeclared inclusion errors in Abseil
+  # (spinlock_wait.cc vs config.cppmap / type_traits.cppmap).
+  echo 'build --features=-module_maps' >> .bazelrc
+
+  # We get some warnings that are transformed to errors. Downgrade them to warnings.
   echo 'build --per_file_copt="spdlog/.*@-w"' >> .bazelrc
   echo 'build --per_file_copt="src/ray/.*$@-w"' >> .bazelrc
 else
   export LDFLAGS="${LDFLAGS} -lrt"
+  # Execution platform: @local_config_platform//:host
+  # /usr/bin/env: 'python3': No such file or directory
+  echo "build --action_env=PATH=${PATH}" >> .bazelrc
+  echo "build --host_action_env=PATH=${PATH}" >> .bazelrc
 fi
 
 echo build --linkopt=-static-libstdc++ >> .bazelrc
@@ -53,28 +73,14 @@ echo build --linkopt=-lm >> .bazelrc
 
 # For some weird reason, build tools are not picked up on linux-aarch64
 if [[ "${target_platform}" == linux-aarch64 ]]; then
-
-    echo build --action_env=BUILD_PREFIX >> .bazelrc
-    
+    echo build --action_env=BUILD_PREFIX=${BUILD_PREFIX} >> .bazelrc
     # Fix missing build tools by creating symlinks to generic names
-    if [ ! -f "${BUILD_PREFIX}/bin/ar" ]; then
-        ln -s "${AR}" "${BUILD_PREFIX}/bin/ar"
-    fi
-    if [ ! -f "${BUILD_PREFIX}/bin/ranlib" ]; then
-        ln -s "${RANLIB}" "${BUILD_PREFIX}/bin/ranlib"
-    fi
-    if [ ! -f "${BUILD_PREFIX}/bin/ld" ]; then
-        ln -s "${LD}" "${BUILD_PREFIX}/bin/ld"
-    fi
-    if [ ! -f "${BUILD_PREFIX}/bin/gcc" ]; then
-        ln -s "${CC}" "${BUILD_PREFIX}/bin/gcc"
-    fi
-    if [ ! -f "${BUILD_PREFIX}/bin/g++" ]; then
-        ln -s "${CXX}" "${BUILD_PREFIX}/bin/g++"
-    fi
-    if [ ! -f "${BUILD_PREFIX}/bin/strip" ]; then
-        ln -s "${STRIP}" "${BUILD_PREFIX}/bin/strip"
-    fi
+    if [ ! -f "${BUILD_PREFIX}/bin/ar" ]; then ln -s "${AR}" "${BUILD_PREFIX}/bin/ar"; fi
+    if [ ! -f "${BUILD_PREFIX}/bin/ranlib" ]; then ln -s "${RANLIB}" "${BUILD_PREFIX}/bin/ranlib"; fi
+    if [ ! -f "${BUILD_PREFIX}/bin/ld" ]; then ln -s "${LD}" "${BUILD_PREFIX}/bin/ld"; fi
+    if [ ! -f "${BUILD_PREFIX}/bin/gcc" ]; then ln -s "${CC}" "${BUILD_PREFIX}/bin/gcc"; fi
+    if [ ! -f "${BUILD_PREFIX}/bin/g++" ]; then ln -s "${CXX}" "${BUILD_PREFIX}/bin/g++"; fi
+    if [ ! -f "${BUILD_PREFIX}/bin/strip" ]; then ln -s "${STRIP}" "${BUILD_PREFIX}/bin/strip"; fi
 fi
 
 cd python/

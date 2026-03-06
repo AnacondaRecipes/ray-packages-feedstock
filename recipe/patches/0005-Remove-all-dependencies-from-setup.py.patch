@@ -1,20 +1,17 @@
-From a778551a156def2846f0a0f6806a5ac31d42003f Mon Sep 17 00:00:00 2001
+From 0b6e95ae42dce0cbd2916eb7ae5ec5127bb51bab Mon Sep 17 00:00:00 2001
 From: Mohamed Sentissi <msentissi@anaconda.com>
-Date: Thu, 7 Nov 2024 14:35:04 -0500
+Date: Fri, 27 Feb 2026 02:15:03 -0800
 Subject: [PATCH] Removed all dependencies from setup.py
 
-Co-authored-by: Kai Fricke <kai@anyscale.com>
-Co-authored-by: Jiajun Yao <jeromeyjj@gmail.com>
-Co-authored-by: Matti Picus <matti.picus@gmail.com>
 ---
- python/setup.py | 110 ++++--------------------------------------------
- 1 file changed, 9 insertions(+), 101 deletions(-)
+ python/setup.py | 120 ++++--------------------------------------------
+ 1 file changed, 9 insertions(+), 111 deletions(-)
 
 diff --git a/python/setup.py b/python/setup.py
-index 838f3aa744..d9935f087e 100644
+index 38b5984..4f462c0 100644
 --- a/python/setup.py
 +++ b/python/setup.py
-@@ -225,112 +225,18 @@ ray_files += [
+@@ -218,88 +218,16 @@ ray_files += [
  # also update the matching section of requirements/requirements.txt
  # in this directory
  if setup_spec.type == SetupType.RAY:
@@ -22,9 +19,8 @@ index 838f3aa744..d9935f087e 100644
 -    numpy_dep = "numpy >= 1.20"
 -    pyarrow_deps = [
 -        "pyarrow >= 9.0.0",
--        "pyarrow <18; sys_platform == 'darwin' and platform_machine == 'x86_64'",
 -    ]
--    pydantic_dep = "pydantic!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.*,!=2.4.*,<3"
+-    pydantic_dep = "pydantic!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.*,!=2.4.*,!=2.5.*,!=2.6.*,!=2.7.*,!=2.8.*,!=2.9.*,!=2.10.*,!=2.11.*,<3"
      setup_spec.extras = {
 -        "cgraph": [
 -            "cupy-cuda12x; sys_platform != 'darwin'",
@@ -44,24 +40,23 @@ index 838f3aa744..d9935f087e 100644
 -        "default": [
 -            # If adding dependencies necessary to launch the dashboard api server,
 -            # please add it to python/ray/dashboard/optional_deps.py as well.
--            "aiohttp >= 3.7",
+-            "aiohttp >= 3.13.3",
 -            "aiohttp_cors",
 -            "colorful",
--            "py-spy >= 0.2.0; python_version < '3.12'",  # noqa:E501
--            "py-spy >= 0.4.0; python_version >= '3.12'",  # noqa:E501
+-            "py-spy >= 0.2.0; python_version < '3.12'",
+-            "py-spy >= 0.4.0; python_version >= '3.12'",
 -            "requests",
--            "grpcio >= 1.32.0; python_version < '3.10'",  # noqa:E501
--            "grpcio >= 1.42.0; python_version >= '3.10'",  # noqa:E501
+-            "grpcio >= 1.42.0",
 -            "opencensus",
+-            "opentelemetry-sdk >= 1.30.0",
+-            "opentelemetry-exporter-prometheus",
+-            "opentelemetry-proto",
 -            pydantic_dep,
 -            "prometheus_client >= 0.7.1",
 -            "smart_open",
 -            "virtualenv >=20.0.24, !=20.21.1",  # For pip runtime env.
 -        ],
 -        "observability": [
--            "opentelemetry-api",
--            "opentelemetry-sdk",
--            "opentelemetry-exporter-otlp",
 -            "memray; sys_platform != 'win32'",
 -        ],
 -        "serve": [
@@ -73,6 +68,8 @@ index 838f3aa744..d9935f087e 100644
 -        ],
 -        "tune": [
 -            "pandas",
+-            # TODO: Remove pydantic dependency from tune once tune doesn't import train
+-            pydantic_dep,
 -            "tensorboardX>=1.9",
 -            "requests",
 -            *pyarrow_deps,
@@ -86,7 +83,7 @@ index 838f3aa744..d9935f087e 100644
 +        "serve": [],
 +        "tune": []
      }
--
+ 
 -    # Both "adag" and "cgraph" are for Compiled Graphs.
 -    # "adag" is deprecated and will be removed in the future.
 -    setup_spec.extras["adag"] = list(setup_spec.extras["cgraph"])
@@ -101,21 +98,24 @@ index 838f3aa744..d9935f087e 100644
 -        set(
 -            setup_spec.extras["serve"]
 -            + [
--                "grpcio >= 1.32.0; python_version < '3.10'",  # noqa:E501
--                "grpcio >= 1.42.0; python_version >= '3.10'",  # noqa:E501
+-                "grpcio >= 1.42.0",
 -                "pyOpenSSL",
 -            ]
 -        )
 -    )
 -
-     if RAY_EXTRA_CPP:
-         setup_spec.extras["cpp"] = ["ray-cpp==" + setup_spec.version]
+     # This is required for supporting the asynchronous inference, allowing the ray serve applications to
+     # allow asynchronously execute their code, via the use of celery task processor.
+     setup_spec.extras["serve-async-inference"] = list(
+@@ -313,27 +241,6 @@ if setup_spec.type == SetupType.RAY:
+ 
+     setup_spec.extras["cpp"] = ["ray-cpp==" + setup_spec.version]
  
 -    setup_spec.extras["rllib"] = setup_spec.extras["tune"] + [
 -        "dm_tree",
--        "gymnasium==1.0.0",
+-        "gymnasium==1.2.2",
 -        "lz4",
--        "ormsgpack==1.7.0",
+-        "ormsgpack>=1.7.0",
 -        "pyyaml",
 -        "scipy",
 -    ]
@@ -131,34 +131,37 @@ index 838f3aa744..d9935f087e 100644
 -            + setup_spec.extras["serve"]
 -        )
 -    )
- 
+-
      # NOTE: While we keep ray[all] for compatibility, you probably
      # shouldn't use it because it contains too many dependencies
-@@ -385,17 +291,7 @@ if setup_spec.type == SetupType.RAY:
+     # and no deployment needs all of them. Instead you should list
+@@ -392,16 +299,7 @@ if setup_spec.type == SetupType.RAY:
  # install-core-prerelease-dependencies.sh so we can test
  # new releases candidates.
  if setup_spec.type == SetupType.RAY:
 -    setup_spec.install_requires = [
--        "click >= 7.0",
+-        "click>=7.0",
 -        "filelock",
 -        "jsonschema",
 -        "msgpack >= 1.0.0, < 2.0.0",
--        "packaging",
--        "protobuf >= 3.15.3, != 3.19.5",
+-        "packaging>=24.2",
+-        "protobuf>=3.20.3",
 -        "pyyaml",
 -        "requests",
 -    ]
--
 +    setup_spec.install_requires = []
  
+ 
  def is_native_windows_or_msys():
-     """Check to see if we are running on native Windows,
-@@ -828,7 +724,7 @@ setuptools.setup(
-     # The BinaryDistribution argument triggers build_ext.
-     distclass=BinaryDistribution,
-     install_requires=setup_spec.install_requires,
--    setup_requires=["cython >= 3.0.12", "pip", "wheel"],
-+    setup_requires=[],
-     extras_require=setup_spec.extras,
-     entry_points={
-         "console_scripts": [
+@@ -829,7 +727,7 @@ if __name__ == "__main__":
+             BinaryDistribution if setup_spec.build_type != BuildType.DEPS_ONLY else None
+         ),
+         install_requires=setup_spec.install_requires,
+-        setup_requires=["cython >= 3.0.12", "pip", "wheel"],
++        setup_requires=[],
+         extras_require=setup_spec.extras,
+         entry_points={
+             "console_scripts": [
+-- 
+2.39.3 (Apple Git-146)
+
