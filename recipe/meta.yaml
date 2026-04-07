@@ -24,9 +24,10 @@ source:
     - patches/0019-Vendor-grpc-1.67.1.patch
     - patches/0020-fix-missing-zlib-dependency-declarations.patch
     - patches/0021-win-fix-invalid-includes.patch # [win]
+    - patches/0022-bazel-ignore-root-user-error.patch
 
 build:
-  number: 0
+  number: 1
   skip: true  # [py<310]
 
 # The requirements/build&host sections of ray-core need to be replicated here.
@@ -380,6 +381,22 @@ outputs:
     test:
       imports:
         - ray
+
+  - name: ray-cgraph
+    build:
+      skip: true  # [py<310]
+      # cupy is not available on macOS
+      skip: true  # [osx]
+    requirements:
+      host:
+        - python
+      run:
+        - python
+        - {{ pin_subpackage('ray-default', exact=True) }}
+        - cupy
+    test:
+      script:
+        - echo "no tests for ray-cgraph, it is a convenience bundle"
 
 about:
   home: https://www.ray.io

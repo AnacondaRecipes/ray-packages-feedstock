@@ -1,0 +1,26 @@
+From cb3bec6828e0c1d363b584949526d6d138ac9330 Mon Sep 17 00:00:00 2001
+From: Eric Lundby <Eric.Lundby@gmail.com>
+Date: Tue, 7 Apr 2026 09:32:18 -0600
+Subject: [PATCH] Bazel: allow hermetic Python when build runs as root
+
+conda-build (and many CI images) run as root. rules_python refuses to
+fetch the hermetic interpreter unless ignore_root_user_error is set.
+
+---
+ WORKSPACE | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/WORKSPACE b/WORKSPACE
+index e623bfa..0c0dd58 100644
+--- a/WORKSPACE
++++ b/WORKSPACE
+@@ -56,6 +56,7 @@ load("@rules_python//python:repositories.bzl", "python_register_toolchains")
+ python_register_toolchains(
+     name = "python3_10",
+     python_version = "3.10",
++    ignore_root_user_error = True,
+     register_toolchains = False,
+ )
+ 
+-- 
+2.50.1 (Apple Git-155)
