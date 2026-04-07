@@ -29,6 +29,7 @@ source:
 build:
   number: 1
   skip: true  # [py<310]
+  skip: true  # [py>313]
 
 # The requirements/build&host sections of ray-core need to be replicated here.
 # It is not clear why at this time but not having them here causes conda build to behave non-deterministically and crash. 
