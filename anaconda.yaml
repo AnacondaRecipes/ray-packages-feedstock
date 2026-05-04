@@ -7,7 +7,6 @@ upstream_sources:
       from_pattern: ^v?(\d+(?:\.\d+)*.*)$
       to_pattern: \1
     packages:
-      - ray-packages
       - ray-adag
       - ray-air
       - ray-client
