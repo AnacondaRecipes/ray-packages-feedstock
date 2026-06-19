@@ -3,10 +3,12 @@ upstream_sources:
   - github:
       identifier: ray-project/ray
       use_max_tag: true
-      exclude_regex: (?i)^(?=.*(?:(?<=\d)rc\d*|(?<=\d)dev\d+|(?:^|[-._])(?:alpha|beta|gamma|pre|preview)(?:\d+)?|[-._]rc\d+|(?:^|[-._])dev\d+|(?:\d+\.)+\d+[ab]\d*)).+$
-      from_pattern: ^v?(\d+(?:\.\d+)*.*)$
+      prefix: ray-
+      include_regex: ^ray-\d+\.\d+\.\d+
+      from_pattern: ^ray-(\d+(?:\.\d+)*.*)$
       to_pattern: \1
     packages:
+      - ray-packages
       - ray-adag
       - ray-air
       - ray-client
