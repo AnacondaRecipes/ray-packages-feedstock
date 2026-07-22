@@ -85,7 +85,7 @@ outputs:
       imports:
         - ray
 
-  - name: ray-core -
+  - name: ray-core
     script: build-core.sh  # [not win]
     script: build-core.bat  # [win]
     build:
