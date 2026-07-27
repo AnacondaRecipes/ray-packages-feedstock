@@ -354,8 +354,7 @@ outputs:
       run:
         - python
         - {{ pin_subpackage('ray-default', exact=True) }}
-        # cupy is pinned instead of making cupy-cuda12x available
-        # resolver will pick the best cuda variant
+        - cuda-version {{ cuda_compiler_version }}  # [(gpu_variant or "").startswith("cuda") and (not osx)]
         - cupy  # [not osx]
     test:
       imports:
