@@ -25,6 +25,7 @@ source:
     - patches/0020-fix-missing-zlib-dependency-declarations.patch
     - patches/0021-win-fix-invalid-includes.patch # [win]
     - patches/0022-Remove-disable-layering-check-for-boringssl.patch
+    - patches/0023-change-bazel-version-on-7.7.1.patch
 
 build:
   number: 0
