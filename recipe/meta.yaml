@@ -25,7 +25,7 @@ source:
     - patches/0020-fix-missing-zlib-dependency-declarations.patch
     - patches/0021-win-fix-invalid-includes.patch # [win]
     - patches/0022-Remove-disable-layering-check-for-boringssl.patch
-    - patches/0023-change-bazel-version-on-7.7.1.patch
+    - patches/0023-change-bazel-version-on-7.6.1.patch
 
 build:
   number: 0
@@ -39,7 +39,7 @@ requirements:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - python
-    - bazel >=7.5.0,<8
+    - bazel ==7.6.1
     - curl
     - git
     - msys2-unzip  # [win]
@@ -110,7 +110,7 @@ outputs:
         # so with --noenable_bzlmod already set in .bazelrc,
         # neither dependency-fetching mechanism is active,
         # and Bazel can't fetch external repos on any platform during the wheel build.
-        - bazel >=7.5.0,<8
+        - bazel ==7.6.1
         - curl
         - git
         - msys2-make   # [win]

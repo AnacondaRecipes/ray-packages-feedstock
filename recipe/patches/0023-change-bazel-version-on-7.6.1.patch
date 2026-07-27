@@ -1,7 +1,7 @@
 From aab6bb3125ccaa75fdfe7a6e6940fa1c429cf466 Mon Sep 17 00:00:00 2001
 From: Andrii Osipov <aosipov@anaconda.com>
 Date: Mon, 27 Jul 2026 05:27:40 -0700
-Subject: [PATCH] change bazel version on 7.7.1
+Subject: [PATCH] change bazel version on 7.6.1
 
 ---
  .bazelversion                    | 2 +-
@@ -15,7 +15,7 @@ index 18bb418..5942a0d 100644
 +++ b/.bazelversion
 @@ -1 +1 @@
 -7.5.0
-+7.7.1
++7.6.1
 diff --git a/WORKSPACE b/WORKSPACE
 index 927840e..f97a911 100644
 --- a/WORKSPACE
@@ -26,8 +26,8 @@ index 927840e..f97a911 100644
  versions.check(
 -    maximum_bazel_version = "7.5.0",
 -    minimum_bazel_version = "7.5.0",
-+    maximum_bazel_version = "7.7.1",
-+    minimum_bazel_version = "7.7.1",
++    maximum_bazel_version = "7.6.1",
++    minimum_bazel_version = "7.6.1",
  )
  
  load("@hedron_compile_commands//:workspace_setup.bzl", "hedron_compile_commands_setup")
@@ -40,7 +40,7 @@ index 219530a..4f4682b 100644
              f.write('workspace(name = "fake_workspace")\n')
          with open(os.path.join(tmpdir, ".bazelversion"), "w") as f:
 -            f.write("7.5.0\n")
-+            f.write("7.7.1\n")
++            f.write("7.6.1\n")
  
          os.makedirs(os.path.join(tmpdir, WORKSPACE_KEY), exist_ok=True)
  
