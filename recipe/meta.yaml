@@ -38,7 +38,7 @@ requirements:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - python
-    - bazel =6.5.0
+    - bazel >=7.5.0
     - curl
     - git
     - msys2-unzip  # [win]
@@ -105,7 +105,7 @@ outputs:
         - {{ stdlib('c') }}
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
-        - bazel =6.5.0
+        - bazel >=7.5.0
         - curl
         - git
         - msys2-make   # [win]
