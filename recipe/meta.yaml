@@ -38,7 +38,7 @@ requirements:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - python
-    - bazel >=7.5.0
+    - bazel >=7.5.0,<8
     - curl
     - git
     - msys2-unzip  # [win]
@@ -105,7 +105,11 @@ outputs:
         - {{ stdlib('c') }}
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
-        - bazel >=7.5.0
+        # Bazel ≥8 flips the --enable_workspace default to false,
+        # so with --noenable_bzlmod already set in .bazelrc,
+        # neither dependency-fetching mechanism is active,
+        # and Bazel can't fetch external repos on any platform during the wheel build.
+        - bazel >=7.5.0,<8
         - curl
         - git
         - msys2-make   # [win]
