@@ -1,0 +1,25 @@
+From ce9d7dd36f2f14593c14c5b0abe8947ad4b5e5d1 Mon Sep 17 00:00:00 2001
+From: Andrii Osipov <aosipov@anaconda.com>
+Date: Mon, 27 Jul 2026 03:55:12 -0700
+Subject: [PATCH] Remove disable layering check for boringssl
+
+---
+ bazel/ray_deps_setup.bzl | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/bazel/ray_deps_setup.bzl b/bazel/ray_deps_setup.bzl
+index 0896088..4a8d02e 100644
+--- a/bazel/ray_deps_setup.bzl
++++ b/bazel/ray_deps_setup.bzl
+@@ -330,7 +330,7 @@ def ray_deps_setup():
+             # in .d files, which Bazel then reports as undeclared direct deps.
+             # Fixed in Bazel 7.3.0. LLVM used the same workaround by disabling
+             # layering_check in Bazel overlays (llvm/llvm-project@5bba176).
+-            "@io_ray//thirdparty/patches:grpc-disable-layering-check.patch",
++            # "@io_ray//thirdparty/patches:grpc-disable-layering-check.patch",
+             "@io_ray//thirdparty/patches:grpc-zlib-fdopen.patch",
+             "@io_ray//thirdparty/patches:grpc-configurable-thread-count.patch",
+             "@io_ray//thirdparty/patches:grpc-nextresult-cancelled-init.patch",
+-- 
+2.39.5 (Apple Git-154)
+
