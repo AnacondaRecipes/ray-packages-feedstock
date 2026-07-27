@@ -4,7 +4,7 @@ Date: Sat, 28 Feb 2026 21:19:51 +0100
 Subject: [PATCH] Vendor grpc 1.67.1
 
 ---
- bazel/ray_deps_setup.bzl                      | 22 ++++++++-----------
+ bazel/ray_deps_setup.bzl                      | 23 +++++++++--------------
  .../task_event_buffer_export_event_test.cc    |  2 +-
  .../gcs/actor/tests/gcs_actor_manager_test.cc | 14 ++++++------
  src/ray/rpc/server_call.h                     |  2 +-
@@ -14,10 +14,10 @@ Subject: [PATCH] Vendor grpc 1.67.1
  7 files changed, 30 insertions(+), 33 deletions(-)
 
 diff --git a/bazel/ray_deps_setup.bzl b/bazel/ray_deps_setup.bzl
-index b782022..d9fc53e 100644
+index f140008..3446800 100644
 --- a/bazel/ray_deps_setup.bzl
 +++ b/bazel/ray_deps_setup.bzl
-@@ -91,12 +91,8 @@ def ray_deps_setup():
+@@ -117,13 +117,8 @@ def ray_deps_setup():
      # Pinned grpc version: v23.4
      auto_http_archive(
          name = "com_google_protobuf",
@@ -25,6 +25,7 @@ index b782022..d9fc53e 100644
 -        url = "https://github.com/protocolbuffers/protobuf/archive/2c5fa078d8e86e5f4bd34e6f4c9ea9e8d7d4d44a.tar.gz",
 -        patches = [
 -            "@com_github_grpc_grpc//third_party:protobuf.patch",
+-            "//thirdparty/patches:protobuf-bazel7.patch",
 -        ],
 -        patch_args = ["-p1"],
 +        sha256 = "b2340aa47faf7ef10a0328190319d3f3bee1b24f426d4ce8f4253b6f27ce16db",
@@ -32,7 +33,7 @@ index b782022..d9fc53e 100644
      )
  
      # NOTE(lingxuan.zlx): 3rd party dependencies could be accessed, so it suggests
-@@ -252,8 +248,8 @@ def ray_deps_setup():
+@@ -299,8 +294,8 @@ def ray_deps_setup():
      # TODO(owner): Upgrade abseil to latest version after protobuf updated, which requires to upgrade `rules_cc` first.
      auto_http_archive(
          name = "com_google_absl",
@@ -43,27 +44,27 @@ index b782022..d9fc53e 100644
          patches = [
              # TODO (israbbani): #55430 Separate the compiler flags and remove this patch
              "@io_ray//thirdparty/patches:abseil-cpp-shadow.patch",
-@@ -277,8 +273,8 @@ def ray_deps_setup():
+@@ -324,8 +319,8 @@ def ray_deps_setup():
      auto_http_archive(
          name = "com_github_grpc_grpc",
          # NOTE: If you update this, also update @boringssl's hash.
--        url = "https://github.com/grpc/grpc/archive/refs/tags/v1.57.1.tar.gz",
--        sha256 = "0762f809b9de845e6a7c809cabccad6aa4143479fd43b396611fe5a086c0aeeb",
+-        url = "https://github.com/grpc/grpc/archive/refs/tags/v1.58.0.tar.gz",
+-        sha256 = "ec64fdab22726d50fc056474dd29401d914cc616f53ab8f2fe4866772881d581",
 +        url = "https://github.com/grpc/grpc/archive/refs/tags/v1.67.1.tar.gz",
 +        sha256 = "d74f8e99a433982a12d7899f6773e285c9824e1d9a173ea1d1fb26c9bd089299",
          patches = [
              "@io_ray//thirdparty/patches:grpc-cython-copts.patch",
-             "@io_ray//thirdparty/patches:grpc-zlib-fdopen.patch",
-@@ -321,11 +317,11 @@ def ray_deps_setup():
+             # Work around bazelbuild/bazel#21592: with layering_check and
+@@ -375,11 +370,11 @@ def ray_deps_setup():
      auto_http_archive(
          # This rule is used by @com_github_grpc_grpc, and using a GitHub mirror
          # provides a deterministic archive hash for caching. Explanation here:
 -        # https://github.com/grpc/grpc/blob/1ff1feaa83e071d87c07827b0a317ffac673794f/bazel/grpc_deps.bzl#L189
-         # Ensure this rule matches the rule used by grpc's bazel/grpc_deps.bzl
 +        # https://github.com/grpc/grpc/blob/v1.67.1/bazel/grpc_deps.bzl#L33
+         # Ensure this rule matches the rule used by grpc's bazel/grpc_deps.bzl
          name = "boringssl",
--        sha256 = "0675a4f86ce5e959703425d6f9063eaadf6b61b7f3399e77a154c0e85bad46b1",
--        url = "https://github.com/google/boringssl/archive/342e805bc1f5dfdd650e3f031686d6c939b095d9.tar.gz",
+-        sha256 = "b21994a857a7aa6d5256ffe355c735ad4c286de44c6c81dfc04edc41a8feaeef",
+-        url = "https://github.com/google/boringssl/archive/2ff4b968a7e0cfee66d9f151cb95635b43dc1d5b.tar.gz",
 +        sha256 = "c70d519e4ee709b7a74410a5e3a937428b8198d793a3d771be3dd2086ae167c8",
 +        url = "https://github.com/google/boringssl/archive/b8b3e6e11166719a8ebfa43c0cde9ad7d57a84f6.tar.gz",
      )
