@@ -356,6 +356,7 @@ outputs:
         - {{ pin_subpackage('ray-default', exact=True) }}
         - cuda-version {{ cuda_compiler_version }}  # [(gpu_variant or "").startswith("cuda") and (not osx)]
         - cupy  # [not osx]
+        - __cuda  # [not osx]
     test:
       imports:
         - ray.dag
