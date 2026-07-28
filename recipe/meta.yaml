@@ -351,10 +351,11 @@ outputs:
     requirements:
       host:
         - python
+        # To trigger a build on a GPU instance, to avoid "no one provides __cuda" error.
+        - cuda-version {{ cuda_compiler_version }}  # [(gpu_variant or "").startswith("cuda") and (not osx)]
       run:
         - python
         - {{ pin_subpackage('ray-default', exact=True) }}
-        - cuda-version {{ cuda_compiler_version }}  # [(gpu_variant or "").startswith("cuda") and (not osx)]
         - cupy  # [not osx]
         - __cuda  # [not osx]
     test:
