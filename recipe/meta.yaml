@@ -11,7 +11,6 @@ source:
   patches:
     - patches/0001-Redis-deps-now-build-but-do-not-link.patch
     - patches/0002-Disable-making-entry-scripts.patch
-    # - patches/0003-Add-bazel-linkopts-libs.patch
     - patches/0004-Ignore-warnings-in-event.cc-and-logging.cc.patch
     - patches/0005-Remove-all-dependencies-from-setup.py.patch
     - patches/0015-Don-t-build-redis-with-jemalloc-on-linux-aarch64.patch  # [linux and aarch64]
@@ -137,12 +136,9 @@ outputs:
         - packaging >=24.2
         - protobuf >=3.20.3
         - pyyaml
-        #- aiosignal
-        #- frozenlist
         - requests
         # Named "Third-party Install" Upstream
         - psutil
-        #- setproctitle ==1.2.2
         - colorama
         - aiohttp
     test:
