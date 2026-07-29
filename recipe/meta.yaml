@@ -345,6 +345,8 @@ outputs:
   - name: ray-adag
     build:
     requirements:
+      build:
+        - {{ compiler('cuda') }}  # [(gpu_variant or "").startswith("cuda") and (not osx)]
       host:
         - python
         # To trigger a build on a GPU instance, to avoid "no one provides __cuda" error.
