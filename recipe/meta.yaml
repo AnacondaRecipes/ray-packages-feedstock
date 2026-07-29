@@ -345,12 +345,10 @@ outputs:
   - name: ray-adag
     build:
     requirements:
-      build:
-        - {{ compiler('cuda') }}  # [(gpu_variant or "").startswith("cuda") and (not osx)]
       host:
         - python
         # To trigger a build on a GPU instance, to avoid "no one provides __cuda" error.
-        - cuda-version {{ cuda_compiler_version }}  # [(gpu_variant or "").startswith("cuda") and (not osx)]
+        - cuda-version {{ cuda_compiler_version }}  # [not osx]
       run:
         - python
         - {{ pin_subpackage('ray-default', exact=True) }}
