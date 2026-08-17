@@ -10,6 +10,7 @@ upstream_sources:
     packages:
       - ray-adag
       - ray-air
+      - ray-all
       - ray-client
       - ray-core
       - ray-dashboard
