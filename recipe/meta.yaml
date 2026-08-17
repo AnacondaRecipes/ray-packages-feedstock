@@ -169,6 +169,10 @@ outputs:
         - requests
         - grpcio >=1.42.0
         - opencensus
+        # opencensus imports google.rpc from googleapis-common-protos; builds <1.57 ship pre-protobuf-3.19
+        # gencode that crashes on modern runtimes ("Descriptors cannot be created directly").
+        # The floor also keeps protobuf <7 in the env via googleapis-common-protos' own protobuf cap.
+        - googleapis-common-protos >=1.57
         - opentelemetry-sdk >=1.30.0
         - opentelemetry-exporter-prometheus
         - opentelemetry-proto
