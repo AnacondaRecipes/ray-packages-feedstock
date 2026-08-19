@@ -1,5 +1,5 @@
 {% set name = "ray-packages" %}
-{% set version = "2.56.1" %}
+{% set version = "2.57.0" %}
 
 package:
   name: {{ name }}
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://github.com/{{ name.split('-')[0] }}-project/{{ name.split('-')[0] }}/archive/refs/tags/{{ name.split('-')[0] }}-{{ version }}.tar.gz
-  sha256: 07d26c88622bea9b92d034aa743600f59e9311b934ac953bd15e7418b9fe31bb
+  sha256: 75b8ab2eab971b4c1bfb1bbe1c4636951b746c04a2541f02d0ce0716189f547c
   patches:
     - patches/0001-Redis-deps-now-build-but-do-not-link.patch
     - patches/0002-Disable-making-entry-scripts.patch
@@ -28,7 +28,8 @@ source:
 
 build:
   number: 0
-  skip: true  # [py<310]
+  # Upstream SUPPORTED_PYTHONS is 3.10-3.14 (python/setup.py); setup.py hard-fails outside it.
+  skip: true  # [py<310 or py>314]
 
 # The requirements/build&host sections of ray-core need to be replicated here.
 # It is not clear why at this time but not having them here causes conda build to behave non-deterministically and crash. 
@@ -52,7 +53,6 @@ requirements:
     - python
     - pip
     - cython >=3.0.12
-    - pkg-config  # [osx]
     - setuptools
     - wheel
     - openjdk =11
@@ -90,8 +90,7 @@ outputs:
     script: build-core.sh  # [not win]
     script: build-core.bat  # [win]
     build:
-      skip: true  # [py<310]
-    build:
+      skip: true  # [py<310 or py>314]
       entry_points:
         - ray = ray.scripts.scripts:main
       # Skip overlinking check for _raylet.so: Bazel-built binary uses ELF dynamic
@@ -122,8 +121,7 @@ outputs:
       host:
         - python
         - pip
-        - cython >=0.29.32
-        - pkg-config  # [osx]
+        - cython >=3.0.12
         - setuptools
         - wheel
         - openjdk =11
@@ -156,7 +154,7 @@ outputs:
 
   - name: ray-default
     build:
-      skip: true  # [py<310]
+      skip: true  # [py<310 or py>314]
     requirements:
       host:
         - python
@@ -171,6 +169,10 @@ outputs:
         - requests
         - grpcio >=1.42.0
         - opencensus
+        # opencensus imports google.rpc from googleapis-common-protos; builds <1.57 ship pre-protobuf-3.19
+        # gencode that crashes on modern runtimes ("Descriptors cannot be created directly").
+        # The floor also keeps protobuf <7 in the env via googleapis-common-protos' own protobuf cap.
+        - googleapis-common-protos >=1.57
         - opentelemetry-sdk >=1.30.0
         - opentelemetry-exporter-prometheus
         - opentelemetry-proto
@@ -196,7 +198,7 @@ outputs:
         - cp -R ./build $SP_DIR/ray/dashboard/client/build  # [not win]
     requirements:
       host:
-        - nodejs
+        - nodejs  # analint: host_section_needs_exact_pinnings  # build-time npm toolchain only; no ABI link, version-insensitive
         - python
       run:
         - python
@@ -289,6 +291,9 @@ outputs:
         - fastapi >=0.133.0
         - watchfiles
         - mmh3
+        # Upstream serve extra also lists ray-haproxy (GPLv2 prebuilt haproxy binary wheel, linux-only).
+        # Omitted: import is try/except-guarded with a system-PATH fallback, and the HAProxy router
+        # is feature-flagged off by default (RAY_SERVE_ENABLE_HA_PROXY=0).
     test:
       imports:
         - ray.serve
@@ -424,6 +429,14 @@ about:
   dev_url: https://github.com/ray-project/ray
 
 extra:
+  skip-lints:
+    # top-level ray-packages is a multi-output shell (no artifact); every shipped output has its own test block
+    - missing_imports_or_run_test_py
+    # false positive: build-core.bat's pip install does pass --no-deps --no-build-isolation
+    - pip_install_args
+    # ray-dashboard uses an inline command list under build/script (outputs/x/script only takes a
+    # file name); a per-line analint directive on that key breaks the linter's variant parsing
+    - wrong_output_script_key
   recipe-maintainers:
     - dHannasch
     - h-vetinari

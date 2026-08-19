@@ -7,11 +7,9 @@ Subject: [PATCH] Removed all dependencies from setup.py
  python/setup.py | 131 ++++--------------------------------------------
  1 file changed, 9 insertions(+), 122 deletions(-)
 
-diff --git a/python/setup.py b/python/setup.py
-index 03038c7..dd3a8e3 100644
 --- a/python/setup.py
 +++ b/python/setup.py
-@@ -218,96 +218,16 @@ ray_files += [
+@@ -218,97 +218,16 @@ ray_files += [
  # also update the matching section of requirements/requirements.txt
  # in this directory
  if setup_spec.type == SetupType.RAY:
@@ -77,6 +75,7 @@ index 03038c7..dd3a8e3 100644
 -            "fastapi >= 0.133.0",  # >= 0.133.0 required for starlette >= 1.0.
 -            "watchfiles",
 -            "mmh3",
+-            "ray-haproxy>=2.8.25,<2.9.0; sys_platform == 'linux'",
 -        ],
 -        "tune": [
 -            # TODO: Remove pydantic dependency from tune once tune doesn't import train
@@ -115,7 +114,7 @@ index 03038c7..dd3a8e3 100644
      # This is required for supporting the asynchronous inference, allowing the ray serve applications to
      # allow asynchronously execute their code, via the use of celery task processor.
      setup_spec.extras["serve-async-inference"] = list(
-@@ -322,30 +242,6 @@ if setup_spec.type == SetupType.RAY:
+@@ -323,30 +242,6 @@ if setup_spec.type == SetupType.RAY:
  
      setup_spec.extras["cpp"] = ["ray-cpp==" + setup_spec.version]
  
@@ -146,7 +145,7 @@ index 03038c7..dd3a8e3 100644
      # NOTE: While we keep ray[all] for compatibility, you probably
      # shouldn't use it because it contains too many dependencies
      # and no deployment needs all of them. Instead you should list
-@@ -403,16 +299,7 @@ if setup_spec.type == SetupType.RAY:
+@@ -404,16 +299,7 @@ if setup_spec.type == SetupType.RAY:
  # install-core-prerelease-dependencies.sh so we can test
  # new releases candidates.
  if setup_spec.type == SetupType.RAY:
@@ -164,7 +163,7 @@ index 03038c7..dd3a8e3 100644
  
  
  def is_native_windows_or_msys():
-@@ -841,7 +728,7 @@ if __name__ == "__main__":
+@@ -842,7 +728,7 @@ if __name__ == "__main__":
              BinaryDistribution if setup_spec.build_type != BuildType.DEPS_ONLY else None
          ),
          install_requires=setup_spec.install_requires,
@@ -173,5 +172,3 @@ index 03038c7..dd3a8e3 100644
          extras_require=setup_spec.extras,
          entry_points={
              "console_scripts": [
--- 
-2.39.5 (Apple Git-154)
