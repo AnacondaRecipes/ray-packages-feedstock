@@ -1,7 +1,24 @@
 #!/bin/bash
 set -xe
 
+rm -rf "${BUILD_PREFIX}/share/bazel/install"
+
 bazel clean --expunge
+# Bazel's helper binaries ship with an rpath pointing at the original conda
+# build prefix, which doesn't exist here. Repoint it at $BUILD_PREFIX/lib.
+INSTALL_DIR=$(ls -d "$BUILD_PREFIX"/share/bazel/install/*/ | head -n1)
+REF=$(mktemp)
+touch -r "$INSTALL_DIR/A-server.jar" "$REF"
+for f in "$INSTALL_DIR"/*; do
+  [[ -f "$f" ]] || continue
+  file "$f" | grep -q Mach-O || continue
+  if otool -l "$f" | grep -A2 LC_RPATH | grep -q "bazel_.*_h_env_placehold"; then
+    install_name_tool -add_rpath "$BUILD_PREFIX/lib" "$f"
+    codesign --force --sign - "$f"
+    touch -r "$REF" "$f"
+  fi
+done
+rm -f "$REF"
 bazel shutdown
 
 if [[ "${target_platform}" == linux-aarch64 ]]; then

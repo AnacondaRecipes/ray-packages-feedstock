@@ -40,6 +40,7 @@ requirements:
     - {{ compiler('cxx') }}
     - python
     - bazel ==7.6.1
+    - openjdk 21.*
     - curl
     - git
     - msys2-unzip  # [win]
