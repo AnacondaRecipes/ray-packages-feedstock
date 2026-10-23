@@ -290,6 +290,7 @@ outputs:
         - requests
         - starlette >=1.0.1
         - fastapi >=0.133.0
+        - jinja2
         - watchfiles
         - mmh3
         # Upstream serve extra also lists ray-haproxy (GPLv2 prebuilt haproxy binary wheel, linux-only).
