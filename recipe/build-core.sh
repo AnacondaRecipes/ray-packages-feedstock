@@ -1,7 +1,31 @@
 #!/bin/bash
 set -xe
 
+rm -rf "${BUILD_PREFIX}/share/bazel/install"
 bazel clean --expunge
+
+INSTALL_DIR=$(ls -d "$BUILD_PREFIX"/share/bazel/install/*/ | head -n1)
+REF=$(mktemp)
+touch -r "$INSTALL_DIR/A-server.jar" "$REF"
+
+for f in "$INSTALL_DIR"/*; do
+  [[ -f "$f" ]] || continue
+  if [[ "${target_platform}" == osx-* ]]; then
+    file "$f" | grep -q Mach-O || continue
+    otool -l "$f" | grep -A2 LC_RPATH | grep -q "bazel_.*_h_env_placehold" || continue
+    chmod u+w "$f"
+    install_name_tool -add_rpath "$BUILD_PREFIX/lib" "$f"
+    codesign --force --sign - "$f"
+  else
+    # only ELF files with unresolved libraries
+    [[ "$(head -c4 "$f" | tail -c3)" == "ELF" ]] || continue
+    ldd "$f" 2>&1 | grep -q "not found" || continue
+    chmod u+w "$f"
+    patchelf --add-rpath "$BUILD_PREFIX/lib" "$f"
+  fi
+  touch -r "$REF" "$f"
+done
+rm -f "$REF"
 bazel shutdown
 
 if [[ "${target_platform}" == linux-aarch64 ]]; then
