@@ -11,12 +11,11 @@ diff --git a/python/setup.py b/python/setup.py
 index 3d3e4a1..25f6deb 100644
 --- a/python/setup.py
 +++ b/python/setup.py
-@@ -464,21 +464,6 @@ def build(build_python, build_java, build_cpp, build_redis):
+@@ -584,20 +502,6 @@ def build(build_python, build_java, build_cpp, build_redis):
              env=dict(os.environ, CC="gcc"),
          )
  
 -        # runtime env agent dependenceis
--        runtime_env_agent_pip_packages = ["aiohttp"]
 -        subprocess.check_call(
 -            [
 -                sys.executable,
@@ -27,12 +26,11 @@ index 3d3e4a1..25f6deb 100644
 -                "--target="
 -                + os.path.join(ROOT_DIR, RUNTIME_ENV_AGENT_THIRDPARTY_SUBDIR),
 -            ]
--            + runtime_env_agent_pip_packages
+-            + RUNTIME_ENV_AGENT_PIP_PACKAGES
 -        )
 -
      bazel_targets = []
      if build_python:
          bazel_targets.append("//:gen_ray_pkg")
--- 
-2.39.3 (Apple Git-146)
+
 
