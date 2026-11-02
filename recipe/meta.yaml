@@ -25,9 +25,10 @@ source:
     - patches/0021-win-fix-invalid-includes.patch # [win]
     - patches/0022-Remove-disable-layering-check-for-boringssl.patch
     - patches/0023-change-bazel-version-on-7.6.1.patch
+    - patches/0024-Support-Bazel-8.8.2.patch
 
 build:
-  number: 0
+  number: 1
   # Upstream SUPPORTED_PYTHONS is 3.10-3.14 (python/setup.py); setup.py hard-fails outside it.
   skip: true  # [py<310 or py>314]
 
@@ -39,7 +40,7 @@ requirements:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - python
-    - bazel ==7.6.1
+    - bazel ==8.8.2
     - openjdk 21.*
     - curl
     - git
@@ -105,11 +106,7 @@ outputs:
         - {{ stdlib('c') }}
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
-        # Bazel ≥8 flips the --enable_workspace default to false,
-        # so with --noenable_bzlmod already set in .bazelrc,
-        # neither dependency-fetching mechanism is active,
-        # and Bazel can't fetch external repos on any platform during the wheel build.
-        - bazel ==7.6.1
+        - bazel ==8.8.2
         - curl
         - git
         - msys2-make   # [win]

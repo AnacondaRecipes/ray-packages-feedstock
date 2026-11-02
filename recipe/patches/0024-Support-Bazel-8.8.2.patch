@@ -1,0 +1,598 @@
+From: Eric Lundby <Eric.Lundby@gmail.com>
+Date: Thu, 30 Oct 2026 22:20:00 +0000
+Subject: [PATCH] Support Bazel 8.8.2
+
+---
+diff --git a/.bazelrc b/.bazelrc
+index b0caccc..a0bdb1e 100644
+--- a/.bazelrc
++++ b/.bazelrc
+@@ -1,4 +1,7 @@
+ common --noenable_bzlmod
++common --enable_workspace
++common --noincompatible_disallow_empty_glob
++common --noincompatible_disallow_ctx_resolve_tools
+ 
+ # Must be first. Enables build:windows, build:linux, build:macos, build:freebsd, build:openbsd
+ build --enable_platform_specific_config
+@@ -50,6 +53,8 @@ build:clang-cl --cxxopt="-std=c++17"
+ build:msvc-cl --cxxopt="/std:c++17"
+ build:windows --cxxopt="/std:c++17"
+ build:windows --cxxopt="/utf-8"
++build --cxxopt="-DPROTOBUF_FUTURE_REMOVE_CREATEMESSAGE"
++build --host_cxxopt="-DPROTOBUF_FUTURE_REMOVE_CREATEMESSAGE"
+ # This workaround is needed to prevent Bazel from compiling the same file twice (once PIC and once not).
+ build:linux --copt="-fPIC"
+ build:macos --copt="-fPIC"
+@@ -264,7 +269,8 @@ build:ubsan --copt -fno-sanitize-recover=all
+ build:ubsan --copt -g
+ build:ubsan --linkopt -fsanitize=undefined
+ build:ubsan --linkopt -fno-sanitize-recover=all
+-build:ubsan --per_file_copt="-external/com_github_grpc_grpc/.*@-fsanitize=undefined"
++build:ubsan --per_file_copt="-external/com_github_grpc_grpc/.*@-fsanitize=undefined,-fno-sanitize=null,-fno-sanitize=nonnull-attribute,-fno-sanitize=returns-nonnull-attribute"
++build:ubsan --copt -Wno-error=maybe-uninitialized
+ 
+ build:cgroup --sandbox_writable_path=/sys/fs/cgroup --config=llvm
+ 
+@@ -300,3 +306,4 @@ build:macos --host_copt=-mmacosx-version-min=12.0
+ build:macos --host_linkopt=-mmacosx-version-min=12.0
+ # This option controls whether javac checks for missing direct dependencies.
+ build --experimental_strict_java_deps=off
++build --java_language_version=8
+diff --git a/.bazelversion b/.bazelversion
+index e8be684..eec6dac 100644
+--- a/.bazelversion
++++ b/.bazelversion
+@@ -1 +1 @@
+-7.6.1
++8.8.2
+diff --git a/BUILD.bazel b/BUILD.bazel
+index b333c5b..4a21365 100644
+--- a/BUILD.bazel
++++ b/BUILD.bazel
+@@ -8,8 +8,8 @@
+ 
+ load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+ load("@com_github_grpc_grpc//bazel:cython_library.bzl", "pyx_library")
++load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
+ load("@hedron_compile_commands//:refresh_compile_commands.bzl", "refresh_compile_commands")
+-load("@rules_cc//cc:defs.bzl", "cc_proto_library")
+ load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
+ load("@rules_pkg//pkg:zip.bzl", "pkg_zip")
+ load("@rules_proto//proto:defs.bzl", "proto_library")
+diff --git a/WORKSPACE b/WORKSPACE
+index 1ea07ae..fe3ee86 100644
+--- a/WORKSPACE
++++ b/WORKSPACE
+@@ -10,24 +10,64 @@ http_archive(
+     ],
+ )
+ 
++http_archive(
++    name = "bazel_skylib",
++    sha256 = "bc283cdfcd526a52c3201279cda4bc298652efa898b10b4db0837dc51652756f",
++    urls = [
++        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-1.7.1.tar.gz",
++    ],
++)
++
++http_archive(
++    name = "rules_cc",
++    sha256 = "bbf1ae2f83305b7053b11e4467d317a7ba3517a12cef608543c1b1c5bf48a4df",
++    strip_prefix = "rules_cc-0.0.16",
++    urls = [
++        "https://github.com/bazelbuild/rules_cc/releases/download/0.0.16/rules_cc-0.0.16.tar.gz",
++    ],
++)
++
+ http_archive(
+     name = "rules_java",
+-    sha256 = "302bcd9592377bf9befc8e41aa97ec02df12813d47af9979e4764f3ffdcc5da8",
++    sha256 = "1558508fc6c348d7f99477bd21681e5746936f15f0436b5f4233e30832a590f9",
+     urls = [
+-        "https://github.com/bazelbuild/rules_java/releases/download/7.12.4/rules_java-7.12.4.tar.gz",
++        "https://github.com/bazelbuild/rules_java/releases/download/8.12.0/rules_java-8.12.0.tar.gz",
+     ],
+ )
+ 
+-load("@rules_java//java:repositories.bzl", "rules_java_dependencies", "rules_java_toolchains")
++http_archive(
++    name = "rules_python",
++    sha256 = "690e0141724abb568267e003c7b6d9a54925df40c275a870a4d934161dc9dd53",
++    strip_prefix = "rules_python-0.40.0",
++    urls = [
++        "https://github.com/bazelbuild/rules_python/releases/download/0.40.0/rules_python-0.40.0.tar.gz",
++    ],
++)
+ 
+-rules_java_dependencies()
++load("@rules_python//python:repositories.bzl", "py_repositories")
+ 
+-rules_java_toolchains()
++py_repositories()
+ 
+ load("//bazel:ray_deps_setup.bzl", "ray_deps_setup")
+ 
+ ray_deps_setup()
+ 
++load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")
++
++rules_java_dependencies()
++
++load("@bazel_features//:deps.bzl", "bazel_features_deps")
++
++bazel_features_deps()
++
++load("@com_google_protobuf//bazel/private:proto_bazel_features.bzl", "proto_bazel_features")  # buildifier: disable=bzl-visibility
++
++proto_bazel_features(name = "proto_bazel_features")
++
++load("@rules_java//java:repositories.bzl", "rules_java_toolchains")
++
++rules_java_toolchains()
++
+ load("//bazel:ray_deps_build_all.bzl", "ray_deps_build_all")
+ 
+ ray_deps_build_all()
+@@ -42,10 +82,7 @@ grpc_extra_deps()
+ load("@bazel_skylib//lib:versions.bzl", "versions")
+ 
+ # Please keep this in sync with the .bazelversion file.
+-versions.check(
+-    maximum_bazel_version = "7.6.1",
+-    minimum_bazel_version = "7.6.1",
+-)
++versions.check(minimum_bazel_version = "8.8.2")
+ 
+ load("@hedron_compile_commands//:workspace_setup.bzl", "hedron_compile_commands_setup")
+ 
+@@ -55,6 +92,7 @@ load("@rules_python//python:repositories.bzl", "python_register_toolchains")
+ 
+ python_register_toolchains(
+     name = "python3_10",
++    ignore_root_user_error = True,
+     python_version = "3.10",
+     register_toolchains = False,
+ )
+diff --git a/bazel/python.bzl b/bazel/python.bzl
+index 1a88a44..1b9bc22 100644
+--- a/bazel/python.bzl
++++ b/bazel/python.bzl
+@@ -1,4 +1,5 @@
+ load("@bazel_skylib//lib:paths.bzl", "paths")
++load("@rules_python//python:defs.bzl", "py_test")
+ 
+ # py_test_module_list creates a py_test target for each
+ # Python file in `files`
+@@ -46,7 +47,7 @@ def doctest(files, gpu = False, name="doctest", deps=[], srcs=[], data=[], args=
+         tags = tags + ["cpu"]
+ 
+ 
+-    native.py_test(
++    py_test(
+         name = name,
+         srcs = ["//bazel:pytest_wrapper.py"] + srcs,
+         main = "//bazel:pytest_wrapper.py",
+@@ -76,7 +77,7 @@ def py_test_module_list(files, size, deps, extra_srcs=[], name_suffix="", **kwar
+         name = paths.split_extension(file)[0] + name_suffix
+         if name == file:
+             basename = basename + "_test"
+-        native.py_test(
++        py_test(
+             name = name,
+             size = size,
+             main = file,
+@@ -90,7 +91,7 @@ def py_test_run_all_subdirectory(include, exclude, extra_srcs, **kwargs):
+         basename = paths.split_extension(file)[0]
+         if basename == file:
+             basename = basename + "_test"
+-        native.py_test(
++        py_test(
+             name = basename,
+             srcs = extra_srcs + [file],
+             **kwargs
+@@ -102,7 +103,7 @@ def py_test_run_all_notebooks(include, exclude, allow_empty=False, **kwargs):
+         basename = paths.split_extension(file)[0]
+         if basename == file:
+             basename = basename + "_test"
+-        native.py_test(
++        py_test(
+             name = basename,
+             main = "test_myst_doc.py",
+             srcs = ["//doc:test_myst_doc.py"],
+diff --git a/bazel/ray.bzl b/bazel/ray.bzl
+index d8b082b..c7a5c0e 100644
+--- a/bazel/ray.bzl
++++ b/bazel/ray.bzl
+@@ -2,6 +2,7 @@ load("@bazel_common//tools/maven:pom_file.bzl", "pom_file")
+ load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+ load("@com_github_google_flatbuffers//:build_defs.bzl", "flatbuffer_library_public")
+ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
++load("@rules_java//java:defs.bzl", "java_library")
+ 
+ COPTS_TESTS = select({
+     "//:opt": ["-DBAZEL_OPT"],
+@@ -88,7 +89,7 @@ def define_java_module(
+     """
+     lib_name = "io_ray_ray_" + name
+     pom_file_targets = [lib_name]
+-    native.java_library(
++    java_library(
+         name = lib_name,
+         srcs = additional_srcs + native.glob(
+             [name + "/src/main/java/**/*.java"],
+@@ -100,7 +101,7 @@ def define_java_module(
+     if define_test_lib:
+         test_lib_name = "io_ray_ray_" + name + "_test"
+         pom_file_targets.append(test_lib_name)
+-        native.java_library(
++        java_library(
+             name = test_lib_name,
+             srcs = native.glob([name + "/src/test/java/**/*.java"]),
+             deps = test_deps,
+diff --git a/bazel/ray_deps_setup.bzl b/bazel/ray_deps_setup.bzl
+index 1702148..b44cbe9 100644
+--- a/bazel/ray_deps_setup.bzl
++++ b/bazel/ray_deps_setup.bzl
+@@ -1,4 +1,3 @@
+-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
+ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
+ 
+ def urlsplit(url):
+@@ -114,11 +113,10 @@ def ray_deps_setup():
+     # https://github.com/ray-project/ray/issues/14117
+     # This is copied from grpc's bazel/grpc_deps.bzl
+     #
+-    # Pinned grpc version: v23.4
+     auto_http_archive(
+         name = "com_google_protobuf",
+-        sha256 = "b2340aa47faf7ef10a0328190319d3f3bee1b24f426d4ce8f4253b6f27ce16db",
+-        url = "https://github.com/protocolbuffers/protobuf/archive/refs/tags/v28.2.tar.gz",
++        sha256 = "2af2352d9e89992ae634257a16cff4c5143c8504db972307e49e61ed1047334e",
++        url = "https://github.com/protocolbuffers/protobuf/archive/refs/tags/v29.6.tar.gz",
+     )
+ 
+     # NOTE(lingxuan.zlx): 3rd party dependencies could be accessed, so it suggests
+@@ -322,8 +321,8 @@ def ray_deps_setup():
+     # TODO(owner): Upgrade abseil to latest version after protobuf updated, which requires to upgrade `rules_cc` first.
+     auto_http_archive(
+         name = "com_google_absl",
+-        sha256 = "f50e5ac311a81382da7fa75b97310e4b9006474f9560ac46f54a9967f07d4ae3",
+-        url = "https://github.com/abseil/abseil-cpp/archive/refs/tags/20240722.0.tar.gz",
++        sha256 = "ec820b01d9b328ca1f1b9c4e5b305d7a9fa03dc410ef64ba6654b637f9a4c3a8",
++        url = "https://github.com/abseil/abseil-cpp/archive/refs/tags/20240722.2.tar.gz",
+         patches = [
+             # TODO (israbbani): #55430 Separate the compiler flags and remove this patch
+             "@io_ray//thirdparty/patches:abseil-cpp-shadow.patch",
+@@ -347,8 +346,8 @@ def ray_deps_setup():
+     auto_http_archive(
+         name = "com_github_grpc_grpc",
+         # NOTE: If you update this, also update @boringssl's hash.
+-        url = "https://github.com/grpc/grpc/archive/refs/tags/v1.67.1.tar.gz",
+-        sha256 = "d74f8e99a433982a12d7899f6773e285c9824e1d9a173ea1d1fb26c9bd089299",
++        url = "https://github.com/grpc/grpc/archive/refs/tags/v1.69.0.tar.gz",
++        sha256 = "cd256d91781911d46a57506978b3979bfee45d5086a1b6668a3ae19c5e77f8dc",
+         patches = [
+             "@io_ray//thirdparty/patches:grpc-cython-copts.patch",
+             # Work around bazelbuild/bazel#21592: with layering_check and
+@@ -357,6 +356,7 @@ def ray_deps_setup():
+             # Fixed in Bazel 7.3.0. LLVM used the same workaround by disabling
+             # layering_check in Bazel overlays (llvm/llvm-project@5bba176).
+             # "@io_ray//thirdparty/patches:grpc-disable-layering-check.patch",
++            "@io_ray//thirdparty/patches:grpc-windows-disable-event-engine.patch",
+             "@io_ray//thirdparty/patches:grpc-zlib-fdopen.patch",
+             "@io_ray//thirdparty/patches:grpc-configurable-thread-count.patch",
+             # "@io_ray//thirdparty/patches:grpc-nextresult-cancelled-init.patch",
+@@ -379,13 +378,10 @@ def ray_deps_setup():
+         url = "https://github.com/bazelbuild/rules_foreign_cc/archive/refs/tags/0.9.0.tar.gz",
+     )
+ 
+-    # Using shallow_since allows the rule to clone down fewer commits.
+-    # Reference:  https://bazel.build/rules/lib/repo/git
+-    git_repository(
++    auto_http_archive(
+         name = "rules_perl",
+-        remote = "https://github.com/bazelbuild/rules_perl.git",
+-        commit = "022b8daf2bb4836ac7a50e4a1d8ea056a3e1e403",
+-        shallow_since = "1663780239 -0700",
++        sha256 = "7d4e17a5850446388ab74a3d884d80731d45931aa6ac93edb9efbd500628fdcb",
++        url = "https://github.com/bazelbuild/rules_perl/archive/022b8daf2bb4836ac7a50e4a1d8ea056a3e1e403.tar.gz",
+     )
+ 
+     auto_http_archive(
+@@ -398,7 +394,7 @@ def ray_deps_setup():
+     auto_http_archive(
+         # This rule is used by @com_github_grpc_grpc, and using a GitHub mirror
+         # provides a deterministic archive hash for caching. Explanation here:
+-        # https://github.com/grpc/grpc/blob/v1.67.1/bazel/grpc_deps.bzl#L33
++        # https://github.com/grpc/grpc/blob/v1.69.0/bazel/grpc_deps.bzl#L33
+         # Ensure this rule matches the rule used by grpc's bazel/grpc_deps.bzl
+         name = "boringssl",
+         sha256 = "c70d519e4ee709b7a74410a5e3a937428b8198d793a3d771be3dd2086ae167c8",
+@@ -411,6 +411,18 @@ def ray_deps_setup():
+     # code generated by protoc of version X can be used with protobuf library of version >= X.
+     # So the version here effectively determines the lower bound of python/java
+     # protobuf library that Ray supports.
++    auto_http_archive(
++        name = "rules_pkg",
++        url = "https://github.com/bazelbuild/rules_pkg/releases/download/0.9.1/rules_pkg-0.9.1.tar.gz",
++        sha256 = "8f9ee2dc10c1ae514ee599a8b42ed99fa262b757058f65ad3c384289ff70c4b8",
++        strip_prefix = None,
++    )
++    auto_http_archive(
++        name = "rules_proto",
++        url = "https://github.com/bazelbuild/rules_proto/releases/download/7.1.0/rules_proto-7.1.0.tar.gz",
++        sha256 = "14a225870ab4e91869652cfd69ef2028277fc1dc4910d65d353b62d6e0ae21f4",
++        strip_prefix = "rules_proto-7.1.0",
++    )
+     auto_http_archive(
+         name = "com_google_protobuf_rules_proto_grpc",
+         url = "https://github.com/protocolbuffers/protobuf/archive/v3.20.3.tar.gz",
+diff --git a/ci/ray_ci/test_bazel_sharding.py b/ci/ray_ci/test_bazel_sharding.py
+index 3d977fc..9814fd5 100644
+--- a/ci/ray_ci/test_bazel_sharding.py
++++ b/ci/ray_ci/test_bazel_sharding.py
+@@ -34,7 +34,7 @@ def mock_build_dir():
+         with open(os.path.join(tmpdir, "WORKSPACE"), "w") as f:
+             f.write('workspace(name = "fake_workspace")\n')
+         with open(os.path.join(tmpdir, ".bazelversion"), "w") as f:
+-            f.write("7.6.1\n")
++            f.write("8.8.2\n")
+ 
+         os.makedirs(os.path.join(tmpdir, WORKSPACE_KEY), exist_ok=True)
+ 
+diff --git a/src/ray/gcs/BUILD.bazel b/src/ray/gcs/BUILD.bazel
+index 58e7cd3..642e721 100644
+--- a/src/ray/gcs/BUILD.bazel
++++ b/src/ray/gcs/BUILD.bazel
+@@ -208,7 +208,7 @@ ray_cc_library(
+         "//src/ray/util:clock",
+         "//src/ray/util:thread_checker",
+         "@com_github_grpc_grpc//:grpc++",
+-        "@com_github_grpc_grpc//src/proto/grpc/health/v1:health_proto",
++        "@com_github_grpc_grpc//src/proto/grpc/health/v1:health_cc_grpc",
+         "@com_google_absl//absl/container:flat_hash_map",
+     ],
+ )
+diff --git a/src/ray/gcs/tests/BUILD.bazel b/src/ray/gcs/tests/BUILD.bazel
+index e0c94cf..73fadc9 100644
+--- a/src/ray/gcs/tests/BUILD.bazel
++++ b/src/ray/gcs/tests/BUILD.bazel
+@@ -83,7 +83,7 @@ ray_cc_test(
+         "//src/ray/common:test_utils",
+         "//src/ray/gcs:gcs_server_lib",
+         "//src/ray/observability:fake_metric",
+-        "@com_github_grpc_grpc//src/proto/grpc/health/v1:health_proto",
++        "@com_github_grpc_grpc//src/proto/grpc/health/v1:health_cc_grpc",
+     ],
+ )
+ 
+diff --git a/src/ray/protobuf/BUILD.bazel b/src/ray/protobuf/BUILD.bazel
+index 50f8b3b..75cd1d4 100644
+--- a/src/ray/protobuf/BUILD.bazel
++++ b/src/ray/protobuf/BUILD.bazel
+@@ -1,5 +1,5 @@
+ load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
+-load("@rules_cc//cc:defs.bzl", "cc_proto_library")
++load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
+ load("@rules_proto//proto:defs.bzl", "proto_library")
+ load("@rules_proto_grpc//python:defs.bzl", "python_grpc_compile")
+ 
+diff --git a/src/ray/protobuf/public/BUILD.bazel b/src/ray/protobuf/public/BUILD.bazel
+index 73cd4bd..839c251 100644
+--- a/src/ray/protobuf/public/BUILD.bazel
++++ b/src/ray/protobuf/public/BUILD.bazel
+@@ -1,4 +1,4 @@
+-load("@rules_cc//cc:defs.bzl", "cc_proto_library")
++load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
+ load("@rules_proto//proto:defs.bzl", "proto_library")
+ 
+ package(default_visibility = ["//visibility:public"])
+diff --git a/src/ray/rpc/grpc_client.h b/src/ray/rpc/grpc_client.h
+index 5442cd1..03e0652 100644
+--- a/src/ray/rpc/grpc_client.h
++++ b/src/ray/rpc/grpc_client.h
+@@ -16,6 +16,7 @@
+ 
+ #include <grpcpp/grpcpp.h>
+ 
++#include <atomic>
+ #include <boost/asio.hpp>
+ #include <memory>
+ #include <string>
+@@ -115,9 +116,16 @@ class GrpcClient {
+   void CallMethod(
+       const PrepareAsyncFunction<GrpcService, Request, Reply> prepare_async_function,
+       const Request &request,
+-      const ClientCallback<Reply> &callback,
++      const ClientCallback<Reply> &user_callback,
+       std::string call_name = "UNKNOWN_RPC",
+       int64_t method_timeout_ms = -1) {
++    num_calls_in_flight_->fetch_add(1);
++    ClientCallback<Reply> callback = [num_calls_in_flight = num_calls_in_flight_,
++                                      user_callback](const Status &status,
++                                                     Reply &&reply) {
++      user_callback(status, std::move(reply));
++      num_calls_in_flight->fetch_sub(1);
++    };
+     testing::RpcFailure failure = skip_testing_intra_node_rpc_failure_
+                                       ? testing::RpcFailure::None
+                                       : testing::GetRpcFailure(call_name);
+@@ -188,7 +196,7 @@ class GrpcClient {
+   /// for channel connectivity state machine.
+   bool IsChannelIdleAfterRPCs() const {
+     return (channel_->GetState(false) == GRPC_CHANNEL_IDLE) &&
+-           call_method_invoked_.load();
++           call_method_invoked_.load() && num_calls_in_flight_->load() == 0;
+   }
+ 
+  private:
+@@ -199,6 +207,8 @@ class GrpcClient {
+   std::unique_ptr<typename GrpcService::Stub> stub_;
+   /// Whether CallMethod is invoked.
+   std::atomic<bool> call_method_invoked_ = false;
++  std::shared_ptr<std::atomic<int64_t>> num_calls_in_flight_ =
++      std::make_shared<std::atomic<int64_t>>(0);
+   bool skip_testing_intra_node_rpc_failure_ = false;
+ };
+ 
+diff --git a/src/ray/rpc/tests/grpc_server_client_test.cc b/src/ray/rpc/tests/grpc_server_client_test.cc
+index 6a371f3..a98ebaf 100644
+--- a/src/ray/rpc/tests/grpc_server_client_test.cc
++++ b/src/ray/rpc/tests/grpc_server_client_test.cc
+@@ -227,6 +227,21 @@ TEST_F(TestGrpcServerClientFixture, TestClientDiedBeforeReply) {
+   }
+ }
+ 
++TEST_F(TestGrpcServerClientFixture, TestNotIdleWhileCallInFlight) {
++  test_service_handler_.frozen = true;
++  PingRequest request;
++  std::atomic<bool> done(false);
++  Ping(request, [&done](const Status &status, const PingReply &reply) { done = true; });
++  for (int i = 0; i < 100; i++) {
++    ASSERT_FALSE(grpc_client_->IsChannelIdleAfterRPCs());
++    std::this_thread::sleep_for(std::chrono::milliseconds(1));
++  }
++  test_service_handler_.frozen = false;
++  while (!done) {
++    std::this_thread::sleep_for(std::chrono::milliseconds(10));
++  }
++}
++
+ TEST_F(TestGrpcServerClientFixture, TestTimeoutMacro) {
+   // Make sure the timeout value in the macro works as expected.
+   test_service_handler_.frozen = true;
+diff --git a/src/ray/util/BUILD.bazel b/src/ray/util/BUILD.bazel
+index 7a0c8ab..cf13caf 100644
+--- a/src/ray/util/BUILD.bazel
++++ b/src/ray/util/BUILD.bazel
+@@ -64,6 +64,7 @@ ray_cc_library(
+         ":thread_utils",
+         "@com_github_spdlog//:spdlog",
+         "@com_google_absl//absl/debugging:failure_signal_handler",
++        "@com_google_absl//absl/log:globals",
+         "@com_google_absl//absl/strings:str_format",
+         "@com_google_googletest//:gtest_prod",
+     ],
+diff --git a/src/ray/util/logging.cc b/src/ray/util/logging.cc
+index 0b4c415..02399ca 100644
+--- a/src/ray/util/logging.cc
++++ b/src/ray/util/logging.cc
+@@ -35,6 +35,7 @@
+ #include <iostream>
+ #include <limits>
+ #include <memory>
++#include <mutex>
+ #include <sstream>
+ #include <string>
+ #include <string_view>
+@@ -44,6 +45,7 @@
+ #include "absl/debugging/failure_signal_handler.h"
+ #include "absl/debugging/stacktrace.h"
+ #include "absl/debugging/symbolize.h"
++#include "absl/log/globals.h"
+ #include "absl/strings/numbers.h"
+ #include "absl/strings/str_format.h"
+ #include "ray/util/thread_utils.h"
+@@ -351,6 +353,13 @@ void RayLog::InitLogFormat() {
+                                     const std::string &err_log_filepath,
+                                     size_t log_rotation_max_size,
+                                     size_t log_rotation_file_num) {
++  static std::once_flag absl_logging_once;
++  std::call_once(absl_logging_once, [] {
++    const char *grpc_verbosity = std::getenv("GRPC_VERBOSITY");
++    if (grpc_verbosity == nullptr || grpc_verbosity[0] == '\0') {
++      absl::SetMinLogLevel(absl::LogSeverityAtLeast::kError);
++    }
++  });
+   InitSeverityThreshold(severity_threshold);
+   InitLogFormat();
+ 
+diff --git a/src/ray/util/tests/BUILD.bazel b/src/ray/util/tests/BUILD.bazel
+index 26e5ac5..0ae015a 100644
+--- a/src/ray/util/tests/BUILD.bazel
++++ b/src/ray/util/tests/BUILD.bazel
+@@ -117,6 +117,7 @@ ray_cc_test(
+         "//src/ray/util:path_utils",
+         "//src/ray/util:time",
+         "@boost//:asio",
++        "@com_google_absl//absl/log:globals",
+         "@com_google_absl//absl/strings:str_format",
+         "@com_google_googletest//:gtest_main",
+         "@nlohmann_json",
+diff --git a/src/ray/util/tests/logging_test.cc b/src/ray/util/tests/logging_test.cc
+index 3ccb4de..cea4008 100644
+--- a/src/ray/util/tests/logging_test.cc
++++ b/src/ray/util/tests/logging_test.cc
+@@ -21,6 +21,7 @@
+ #include <string>
+ #include <vector>
+ 
++#include "absl/log/globals.h"
+ #include "absl/strings/str_format.h"
+ #include "absl/strings/str_split.h"
+ #include "gmock/gmock.h"
+@@ -191,6 +192,13 @@ TEST(PrintLogTest, TestRayLogEveryMs) {
+   EXPECT_LT(occurrences, 15);
+ }
+ 
++TEST(PrintLogTest, TestAbslMinLogLevelDefaultsToError) {
++  ASSERT_EQ(std::getenv("GRPC_VERBOSITY"), nullptr);
++  RayLog::StartRayLog("/tmp/gcs", RayLogLevel::INFO, /*log_filepath=*/"");
++  EXPECT_EQ(absl::MinLogLevel(), absl::LogSeverityAtLeast::kError);
++  RayLog::ShutDownRayLog();
++}
++
+ TEST(PrintLogTest, TestTextLogging) {
+   SetEnv("RAY_BACKEND_LOG_JSON", "0");
+   RayLog::StartRayLog("/tmp/gcs", RayLogLevel::INFO, /*log_filepath=*/"");
+diff --git a/thirdparty/patches/grpc-configurable-thread-count.patch b/thirdparty/patches/grpc-configurable-thread-count.patch
+index f0aa4f7..7ef21fb 100644
+--- a/thirdparty/patches/grpc-configurable-thread-count.patch
++++ b/thirdparty/patches/grpc-configurable-thread-count.patch
+@@ -1,5 +1,3 @@
+-diff --git src/core/util/linux/cpu.cc src/core/util/linux/cpu.cc
+-index aa232a6..2e63b90 100644
+ --- src/core/util/linux/cpu.cc
+ +++ src/core/util/linux/cpu.cc
+ @@ -24,6 +24,7 @@
+@@ -9,6 +7,6 @@ index aa232a6..2e63b90 100644
+ +#include <charconv>
+  #include <errno.h>
+- #include <sched.h>
+- #include <string.h>
+-@@ -50,7 +51,17 @@ static void init_num_cpus() {
++ #include <grpc/support/cpu.h>
++ #include <grpc/support/sync.h>
++@@ -48,7 +49,17 @@
+  #endif
+diff --git a/thirdparty/patches/grpc-windows-disable-event-engine.patch b/thirdparty/patches/grpc-windows-disable-event-engine.patch
+new file mode 100644
+index 0000000..89b0a08
+--- /dev/null
++++ b/thirdparty/patches/grpc-windows-disable-event-engine.patch
+@@ -0,0 +1,24 @@
++diff -u src/core/lib/experiments/experiments.cc
++--- src/core/lib/experiments/experiments.cc
+++++ src/core/lib/experiments/experiments.cc
++@@ -361,9 +361,9 @@
++      true, true},
++     {"event_engine_callback_cq", description_event_engine_callback_cq,
++      additional_constraints_event_engine_callback_cq,
++-     required_experiments_event_engine_callback_cq, 1, true, true},
+++     required_experiments_event_engine_callback_cq, 1, false, true},
++     {"event_engine_client", description_event_engine_client,
++-     additional_constraints_event_engine_client, nullptr, 0, true, true},
+++     additional_constraints_event_engine_client, nullptr, 0, false, true},
++     {"event_engine_dns", description_event_engine_dns,
++      additional_constraints_event_engine_dns, nullptr, 0, true, false},
++     {"event_engine_dns_non_client_channel",
++@@ -371,7 +371,7 @@
++      additional_constraints_event_engine_dns_non_client_channel, nullptr, 0,
++      false, false},
++     {"event_engine_listener", description_event_engine_listener,
++-     additional_constraints_event_engine_listener, nullptr, 0, true, true},
+++     additional_constraints_event_engine_listener, nullptr, 0, false, true},
++     {"free_large_allocator", description_free_large_allocator,
++      additional_constraints_free_large_allocator, nullptr, 0, false, true},
++     {"local_connector_secure", description_local_connector_secure,
