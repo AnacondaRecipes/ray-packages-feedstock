@@ -261,15 +261,11 @@ index 1702148..b44cbe9 100644
      )
  
      # NOTE(lingxuan.zlx): 3rd party dependencies could be accessed, so it suggests
-@@ -166,6 +165,8 @@ def ray_deps_setup():
+@@ -239,2 +237,4 @@ def ray_deps_setup():
              "//thirdparty/patches:boost-headers.patch",
-             "//thirdparty/patches:rules_boost-zlib-system-headers.patch",
-             "//thirdparty/patches:rules_boost-lzma-windows.patch",
 +            "//thirdparty/patches:rules_boost-windows-arm64.patch",
 +            "//thirdparty/patches:rules_boost-lzma-arm64.patch",
-         ],
-         patch_args = ["-p1"],
-     )
+             "//thirdparty/patches:rules_boost-zlib-system-headers.patch",
 @@ -210,4 +209,6 @@ def ray_deps_setup():
          name = "com_github_gflags_gflags",
          url = "https://github.com/gflags/gflags/archive/e171aa2d15ed9eb17054558e0b3a6a413bb01067.tar.gz",
