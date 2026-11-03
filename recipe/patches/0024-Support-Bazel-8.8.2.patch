@@ -154,6 +154,14 @@ index 1ea07ae..fe3ee86 100644
      python_version = "3.10",
      register_toolchains = False,
  )
+@@ -102,4 +139,7 @@ pip_parse(
+     name = "py_deps_py310",
+     python_interpreter_target = python310,
++    requirements_by_platform = {
++        "//release:requirements_py310.txt": "windows_aarch64",
++    },
+     requirements_lock = "//release:requirements_py310.txt",
+ )
 diff --git a/bazel/python.bzl b/bazel/python.bzl
 index 1a88a44..1b9bc22 100644
 --- a/bazel/python.bzl
@@ -253,6 +261,30 @@ index 1702148..b44cbe9 100644
      )
  
      # NOTE(lingxuan.zlx): 3rd party dependencies could be accessed, so it suggests
+@@ -166,6 +165,8 @@ def ray_deps_setup():
+             "//thirdparty/patches:boost-headers.patch",
+             "//thirdparty/patches:rules_boost-zlib-system-headers.patch",
+             "//thirdparty/patches:rules_boost-lzma-windows.patch",
++            "//thirdparty/patches:rules_boost-windows-arm64.patch",
++            "//thirdparty/patches:rules_boost-lzma-arm64.patch",
+         ],
+         patch_args = ["-p1"],
+     )
+@@ -210,4 +209,6 @@ def ray_deps_setup():
+         name = "com_github_gflags_gflags",
+         url = "https://github.com/gflags/gflags/archive/e171aa2d15ed9eb17054558e0b3a6a413bb01067.tar.gz",
+         sha256 = "b20f58e7f210ceb0e768eb1476073d0748af9b19dfbbf53f4fd16e3fb49c5ac8",
++        patches = ["//thirdparty/patches:gflags-windows-arm64.patch"],
++        patch_args = ["-p1"],
+     )
+@@ -286,6 +285,7 @@ def ray_deps_setup():
+         patches = [
+             "@io_ray//thirdparty/patches:opencensus-cpp-harvest-interval.patch",
+             "@io_ray//thirdparty/patches:opencensus-cpp-shutdown-api.patch",
++            "@io_ray//thirdparty/patches:opencensus-cpp-windows-arm64.patch",
+         ],
+         patch_args = ["-p1"],
+     )
 @@ -322,8 +321,8 @@ def ray_deps_setup():
      # TODO(owner): Upgrade abseil to latest version after protobuf updated, which requires to upgrade `rules_cc` first.
      auto_http_archive(
@@ -275,11 +307,12 @@ index 1702148..b44cbe9 100644
          patches = [
              "@io_ray//thirdparty/patches:grpc-cython-copts.patch",
              # Work around bazelbuild/bazel#21592: with layering_check and
-@@ -357,6 +356,7 @@ def ray_deps_setup():
+@@ -357,6 +356,8 @@ def ray_deps_setup():
              # Fixed in Bazel 7.3.0. LLVM used the same workaround by disabling
              # layering_check in Bazel overlays (llvm/llvm-project@5bba176).
              # "@io_ray//thirdparty/patches:grpc-disable-layering-check.patch",
 +            "@io_ray//thirdparty/patches:grpc-windows-disable-event-engine.patch",
++            "@io_ray//thirdparty/patches:grpc-windows-arm64.patch",
              "@io_ray//thirdparty/patches:grpc-zlib-fdopen.patch",
              "@io_ray//thirdparty/patches:grpc-configurable-thread-count.patch",
              # "@io_ray//thirdparty/patches:grpc-nextresult-cancelled-init.patch",
@@ -328,6 +361,139 @@ index 1702148..b44cbe9 100644
      auto_http_archive(
          name = "com_google_protobuf_rules_proto_grpc",
          url = "https://github.com/protocolbuffers/protobuf/archive/v3.20.3.tar.gz",
+diff --git a/thirdparty/patches/gflags-windows-arm64.patch b/thirdparty/patches/gflags-windows-arm64.patch
+new file mode 100644
+--- /dev/null
++++ b/thirdparty/patches/gflags-windows-arm64.patch
+@@ -0,0 +1,9 @@
++diff --git a/BUILD b/BUILD
++--- a/BUILD
+++++ b/BUILD
++@@ -9,4 +9,4 @@
++ config_setting(
++     name = "x64_windows",
++-    values = {"cpu": "x64_windows"},
+++    constraint_values = ["@platforms//os:windows"],
++ )
+diff --git a/thirdparty/patches/rules_boost-lzma-arm64.patch b/thirdparty/patches/rules_boost-lzma-arm64.patch
+new file mode 100644
+--- /dev/null
++++ b/thirdparty/patches/rules_boost-lzma-arm64.patch
+@@ -0,0 +1,13 @@
++diff --git a/config.lzma-windows.h b/config.lzma-windows.h
++--- a/config.lzma-windows.h
+++++ b/config.lzma-windows.h
++@@ -157,2 +157,4 @@
++ /* Define to 1 if you have the <immintrin.h> header file. */
+++#if (defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)) && !defined(_M_ARM64EC)
++ #define HAVE_IMMINTRIN_H 1
+++#endif
++@@ -296,2 +298,4 @@
++ /* Define to 1 if _mm_movemask_epi8 is available. */
+++#if (defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)) && !defined(_M_ARM64EC)
++ #define HAVE__MM_MOVEMASK_EPI8 1
+++#endif
+diff --git a/thirdparty/patches/rules_boost-windows-arm64.patch b/thirdparty/patches/rules_boost-windows-arm64.patch
+new file mode 100644
+index 0000000000..a3f9a04b3f
+--- /dev/null
++++ b/thirdparty/patches/rules_boost-windows-arm64.patch
+@@ -0,0 +1,48 @@
++diff --git a/BUILD.boost b/BUILD.boost
++--- a/BUILD.boost
+++++ b/BUILD.boost
++@@ -63,7 +63,22 @@
++ config_setting(
++     name = "windows_x86_64",
++     constraint_values = [
++         "@platforms//os:windows",
+++    ],
+++)
+++
+++config_setting(
+++    name = "windows_context_x86_64",
+++    constraint_values = [
+++        "@platforms//os:windows",
++         "@platforms//cpu:x86_64",
++     ],
++ )
+++
+++config_setting(
+++    name = "windows_context_arm64",
+++    constraint_values = [
+++        "@platforms//os:windows",
+++        "@platforms//cpu:aarch64",
+++    ],
+++)
++@@ -119,5 +133,5 @@
++-    ":windows_x86_64": [
+++    ":windows_context_x86_64": [
++         "libs/context/src/asm/make_x86_64_ms_pe_masm.S",
++         "libs/context/src/asm/jump_x86_64_ms_pe_masm.S",
++         "libs/context/src/asm/ontop_x86_64_ms_pe_masm.S",
++     ],
++@@ -158,4 +171,14 @@
++         ],
++         "//conditions:default": [],
+++    }) + select({
+++        ":windows_context_arm64": [
+++            "libs/context/src/fiber.cpp",
+++            "libs/context/src/continuation.cpp",
+++        ],
+++        "//conditions:default": [],
+++    }),
+++    defines = select({
+++        ":windows_context_arm64": ["BOOST_USE_WINFIB"],
+++        "//conditions:default": [],
++     }),
++     exclude_src = [
+diff --git a/thirdparty/patches/opencensus-cpp-windows-arm64.patch b/thirdparty/patches/opencensus-cpp-windows-arm64.patch
+new file mode 100644
+index 0000000000..b7c1d2e3f4
+--- /dev/null
++++ b/thirdparty/patches/opencensus-cpp-windows-arm64.patch
+@@ -0,0 +1,15 @@
++diff --git a/opencensus/BUILD b/opencensus/BUILD
++--- a/opencensus/BUILD
+++++ b/opencensus/BUILD
++@@ -28,8 +28,8 @@ config_setting(
++ config_setting(
++     name = "windows",
++-    values = {
++-        "cpu": "x64_windows",
++-    },
+++    constraint_values = [
+++        "@platforms//os:windows",
+++    ],
++     visibility = [
++         ":__subpackages__",
++         "//examples:__subpackages__",
+diff --git a/thirdparty/patches/grpc-windows-arm64.patch b/thirdparty/patches/grpc-windows-arm64.patch
+new file mode 100644
+index 0000000000..d4e5f6a7b8
+--- /dev/null
++++ b/thirdparty/patches/grpc-windows-arm64.patch
+@@ -0,0 +1,20 @@
++diff -u third_party/cares/cares.BUILD third_party/cares/cares.BUILD
++--- third_party/cares/cares.BUILD
+++++ third_party/cares/cares.BUILD
++@@ -19,4 +19,6 @@ config_setting(
++ config_setting(
++     name = "windows",
++-    values = {"cpu": "x64_windows"},
+++    constraint_values = [
+++        "@platforms//os:windows",
+++    ],
++ )
++diff -u third_party/py/BUILD.tpl third_party/py/BUILD.tpl
++--- third_party/py/BUILD.tpl
+++++ third_party/py/BUILD.tpl
++@@ -5,4 +5,4 @@
++ config_setting(
++     name="windows",
++-    values={"cpu": "x64_windows"},
+++    constraint_values=["@platforms//os:windows"],
++     visibility=["//visibility:public"],
 diff --git a/ci/ray_ci/test_bazel_sharding.py b/ci/ray_ci/test_bazel_sharding.py
 index 3d977fc..9814fd5 100644
 --- a/ci/ray_ci/test_bazel_sharding.py
