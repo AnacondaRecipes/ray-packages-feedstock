@@ -1,1 +1,4 @@
 task_timeout: 54000
+
+channels:
+  - https://package-build.anaconda.com/pkg-orchestrator/v1/channels/graphs/270ba855-caf3-4711-a54e-3544278a3bb7
