@@ -15,9 +15,9 @@ diff --git a/bazel/ray_deps_setup.bzl b/bazel/ray_deps_setup.bzl
 index f90bc9a3ad..9ce1c1bb7b 100644
 --- a/bazel/ray_deps_setup.bzl
 +++ b/bazel/ray_deps_setup.bzl
-@@ -166,6 +166,7 @@ def ray_deps_setup():
-         patches = [
-             "//thirdparty/patches:boost-headers.patch",
+@@ -238,6 +238,7 @@ def ray_deps_setup():
+             "//thirdparty/patches:rules_boost-windows-arm64.patch",
+             "//thirdparty/patches:rules_boost-lzma-arm64.patch",
              "//thirdparty/patches:rules_boost-zlib-system-headers.patch",
 +            "//thirdparty/patches:rules_boost-lzma-windows.patch",
          ],
