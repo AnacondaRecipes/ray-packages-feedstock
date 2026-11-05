@@ -1,0 +1,35 @@
+diff --git a/.bazelversion b/.bazelversion
+index 18bb418..e8be684 100644
+--- a/.bazelversion
++++ b/.bazelversion
+@@ -1 +1 @@
+-7.5.0
++7.7.1
+diff --git a/WORKSPACE b/WORKSPACE
+index 4554595..9bf3c2c 100644
+--- a/WORKSPACE
++++ b/WORKSPACE
+@@ -43,8 +43,8 @@ load("@bazel_skylib//lib:versions.bzl", "versions")
+ 
+ # Please keep this in sync with the .bazelversion file.
+ versions.check(
+-    maximum_bazel_version = "7.5.0",
+-    minimum_bazel_version = "7.5.0",
++    maximum_bazel_version = "7.7.1",
++    minimum_bazel_version = "7.7.1",
+ )
+ 
+ load("@hedron_compile_commands//:workspace_setup.bzl", "hedron_compile_commands_setup")
+diff --git a/ci/ray_ci/test_bazel_sharding.py b/ci/ray_ci/test_bazel_sharding.py
+index 219530a..3d977fc 100644
+--- a/ci/ray_ci/test_bazel_sharding.py
++++ b/ci/ray_ci/test_bazel_sharding.py
+@@ -34,7 +34,7 @@ def mock_build_dir():
+         with open(os.path.join(tmpdir, "WORKSPACE"), "w") as f:
+             f.write('workspace(name = "fake_workspace")\n')
+         with open(os.path.join(tmpdir, ".bazelversion"), "w") as f:
+-            f.write("7.5.0\n")
++            f.write("7.7.1\n")
+ 
+         os.makedirs(os.path.join(tmpdir, WORKSPACE_KEY), exist_ok=True)
+ 

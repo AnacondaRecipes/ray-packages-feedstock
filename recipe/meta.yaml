@@ -17,10 +17,10 @@ source:
     - patches/0016-fix-redis-build-on-macos.patch  # [osx]
     - patches/0017-Don-t-use-Xcode-on-macOS.patch  # [osx]
     - patches/0018-Remove-runtime-agent-dependencies.patch
+    - patches/0019-Vendor-grpc-1.67.1.patch
     - patches/0020-fix-missing-zlib-dependency-declarations.patch
     - patches/0022-Remove-disable-layering-check-for-boringssl.patch
-    - patches/0023-Bazel-8-build-rules.patch
-    - patches/0024-Protobuf-29-and-gRPC-1.69.patch
+    - patches/0023-Bazel-7-version-range.patch
     - patches/0025-Windows-ARM64-dependencies.patch
     - patches/0026-win-fix-invalid-includes.patch # [win]
 
@@ -37,7 +37,7 @@ requirements:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - python
-    - bazel ==8.8.2
+    - bazel ==7.7.1
     - openjdk 25
     - curl
     - git
@@ -103,7 +103,7 @@ outputs:
         - {{ stdlib('c') }}
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
-        - bazel ==8.8.2
+        - bazel ==7.7.1
         - curl
         - git
         - msys2-make   # [win]

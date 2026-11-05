@@ -1,28 +1,8 @@
-Subject: [PATCH] Support Windows ARM64 in Bazel dependencies
-
-Add the Windows ARM64 Python lock mapping and adapt gflags, Boost,
-OpenCensus, and gRPC dependencies. These changes apply on all hosts;
-their platform-specific behavior is selected inside Bazel.
-
-diff --git a/WORKSPACE b/WORKSPACE
-index d150d75..c2b4aca 100644
---- a/WORKSPACE
-+++ b/WORKSPACE
-@@ -172,6 +172,9 @@ load("@rules_python//python:pip.bzl", "pip_parse")
- pip_parse(
-     name = "py_deps_py310",
-     python_interpreter_target = python310,
-+    requirements_by_platform = {
-+        "//release:requirements_py310.txt": "windows_aarch64",
-+    },
-     requirements_lock = "//release:requirements_py310.txt",
- )
- 
 diff --git a/bazel/ray_deps_setup.bzl b/bazel/ray_deps_setup.bzl
-index 61e05fb..32072a7 100644
+index 444efc1..425473f 100644
 --- a/bazel/ray_deps_setup.bzl
 +++ b/bazel/ray_deps_setup.bzl
-@@ -235,6 +235,8 @@ def ray_deps_setup():
+@@ -237,6 +237,8 @@ def ray_deps_setup():
          sha256 = "490d11425393eed068966a4990ead1ff07c658f823fd982fddac67006ccc44ab",
          patches = [
              "//thirdparty/patches:boost-headers.patch",
@@ -31,7 +11,7 @@ index 61e05fb..32072a7 100644
              "//thirdparty/patches:rules_boost-zlib-system-headers.patch",
          ],
          patch_args = ["-p1"],
-@@ -256,6 +258,8 @@ def ray_deps_setup():
+@@ -258,6 +260,8 @@ def ray_deps_setup():
          name = "com_github_gflags_gflags",
          url = "https://github.com/gflags/gflags/archive/e171aa2d15ed9eb17054558e0b3a6a413bb01067.tar.gz",
          sha256 = "b20f58e7f210ceb0e768eb1476073d0748af9b19dfbbf53f4fd16e3fb49c5ac8",
@@ -40,7 +20,7 @@ index 61e05fb..32072a7 100644
      )
  
      auto_http_archive(
-@@ -287,6 +291,7 @@ def ray_deps_setup():
+@@ -289,6 +293,7 @@ def ray_deps_setup():
          patches = [
              "@io_ray//thirdparty/patches:opencensus-cpp-harvest-interval.patch",
              "@io_ray//thirdparty/patches:opencensus-cpp-shutdown-api.patch",
@@ -48,10 +28,10 @@ index 61e05fb..32072a7 100644
          ],
          patch_args = ["-p1"],
      )
-@@ -355,6 +360,7 @@ def ray_deps_setup():
+@@ -356,6 +361,7 @@ def ray_deps_setup():
+             # Fixed in Bazel 7.3.0. LLVM used the same workaround by disabling
              # layering_check in Bazel overlays (llvm/llvm-project@5bba176).
              # "@io_ray//thirdparty/patches:grpc-disable-layering-check.patch",
-             "@io_ray//thirdparty/patches:grpc-windows-disable-event-engine.patch",
 +            "@io_ray//thirdparty/patches:grpc-windows-arm64.patch",
              "@io_ray//thirdparty/patches:grpc-zlib-fdopen.patch",
              "@io_ray//thirdparty/patches:grpc-configurable-thread-count.patch",
