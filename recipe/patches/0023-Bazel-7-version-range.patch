@@ -1,3 +1,14 @@
+From aab6bb3125ccaa75fdfe7a6e6940fa1c429cf466 Mon Sep 17 00:00:00 2001
+From: Andrii Osipov <aosipov@anaconda.com>
+Date: Mon, 27 Jul 2026 05:27:40 -0700
+Subject: [PATCH] change bazel version on 7.7.1
+
+---
+ .bazelversion                    | 2 +-
+ WORKSPACE                        | 4 ++--
+ ci/ray_ci/test_bazel_sharding.py | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
 diff --git a/.bazelversion b/.bazelversion
 index 18bb418..e8be684 100644
 --- a/.bazelversion

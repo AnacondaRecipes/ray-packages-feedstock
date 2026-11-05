@@ -17,6 +17,9 @@ source:
     - patches/0016-fix-redis-build-on-macos.patch  # [osx]
     - patches/0017-Don-t-use-Xcode-on-macOS.patch  # [osx]
     - patches/0018-Remove-runtime-agent-dependencies.patch
+    # See https://github.com/conda-forge/ray-packages-feedstock/issues/136
+    # Keep in sync with current or active migration of libgrpc to avoid
+    # ABI breakage
     - patches/0019-Vendor-grpc-1.67.1.patch
     - patches/0020-fix-missing-zlib-dependency-declarations.patch
     - patches/0022-Remove-disable-layering-check-for-boringssl.patch
@@ -103,6 +106,10 @@ outputs:
         - {{ stdlib('c') }}
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
+        # Bazel ≥8 flips the --enable_workspace default to false,
+        # so with --noenable_bzlmod already set in .bazelrc,
+        # neither dependency-fetching mechanism is active,
+        # and Bazel can't fetch external repos on any platform during the wheel build.
         - bazel ==7.7.1
         - curl
         - git
