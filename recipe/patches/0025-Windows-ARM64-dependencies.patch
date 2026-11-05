@@ -53,10 +53,54 @@ index 0000000..93038e3
 + )
 diff --git a/thirdparty/patches/grpc-windows-arm64.patch b/thirdparty/patches/grpc-windows-arm64.patch
 new file mode 100644
-index 0000000..e07bcac
+index 0000000..5d4c45d
 --- /dev/null
 +++ b/thirdparty/patches/grpc-windows-arm64.patch
-@@ -0,0 +1,20 @@
+@@ -0,0 +1,64 @@
++diff -u BUILD BUILD
++--- BUILD
+++++ BUILD
++@@ -197,3 +197,11 @@ config_setting(
+++config_setting(
+++    name = "windows_arm64",
+++    constraint_values = [
+++        "@platforms//os:windows",
+++        "@platforms//cpu:aarch64",
+++    ],
+++)
+++
++ config_setting(
++     name = "windows_msvc",
++     values = {"cpu": "x64_windows_msvc"},
++diff -u bazel/grpc_build_system.bzl bazel/grpc_build_system.bzl
++--- bazel/grpc_build_system.bzl
+++++ bazel/grpc_build_system.bzl
++@@ -44,6 +44,7 @@ def if_not_windows(a):
++     return select({
++         "//:windows": [],
+++        "//:windows_arm64": [],
++         "//:windows_msvc": [],
++         "//:windows_clang": [],
++         "//conditions:default": a,
++@@ -52,6 +53,7 @@ def if_not_windows(a):
++ def if_windows(a):
++     return select({
++         "//:windows": a,
+++        "//:windows_arm64": a,
++         "//:windows_msvc": a,
++         "//:windows_clang": a,
++         "//conditions:default": [],
++diff -u src/core/BUILD src/core/BUILD
++--- src/core/BUILD
+++++ src/core/BUILD
++@@ -2737,6 +2737,7 @@ grpc_cc_library(
++     select_deps = [
++         {
++             "//:windows": ["windows_event_engine"],
+++            "//:windows_arm64": ["windows_event_engine"],
++             "//:windows_msvc": ["windows_event_engine"],
++             "//:windows_clang": ["windows_event_engine"],
++             "//:windows_other": ["windows_event_engine"],
 +diff -u third_party/cares/cares.BUILD third_party/cares/cares.BUILD
 +--- third_party/cares/cares.BUILD
 ++++ third_party/cares/cares.BUILD
