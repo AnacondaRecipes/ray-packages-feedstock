@@ -22,12 +22,13 @@ source:
     # ABI breakage
     - patches/0019-Vendor-grpc-1.67.1.patch
     - patches/0020-fix-missing-zlib-dependency-declarations.patch
-    - patches/0021-win-fix-invalid-includes.patch # [win]
     - patches/0022-Remove-disable-layering-check-for-boringssl.patch
-    - patches/0023-change-bazel-version-on-7.6.1.patch
+    - patches/0023-Bazel-7-version-range.patch
+    - patches/0025-Windows-ARM64-dependencies.patch
+    - patches/0026-win-fix-invalid-includes.patch # [win]
 
 build:
-  number: 0
+  number: 1
   # Upstream SUPPORTED_PYTHONS is 3.10-3.14 (python/setup.py); setup.py hard-fails outside it.
   skip: true  # [py<310 or py>314]
 
@@ -39,8 +40,8 @@ requirements:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - python
-    - bazel ==7.6.1
-    - openjdk 21.*
+    - bazel ==7.7.1
+    - openjdk 25
     - curl
     - git
     - msys2-unzip  # [win]
@@ -56,7 +57,7 @@ requirements:
     - cython >=3.0.12
     - setuptools
     - wheel
-    - openjdk =11
+    - openjdk 25
 
 outputs:
   - name: ray-all
@@ -109,7 +110,7 @@ outputs:
         # so with --noenable_bzlmod already set in .bazelrc,
         # neither dependency-fetching mechanism is active,
         # and Bazel can't fetch external repos on any platform during the wheel build.
-        - bazel ==7.6.1
+        - bazel ==7.7.1
         - curl
         - git
         - msys2-make   # [win]
@@ -125,7 +126,7 @@ outputs:
         - cython >=3.0.12
         - setuptools
         - wheel
-        - openjdk =11
+        - openjdk 25
       run:
         - python
         - click >=7.0
